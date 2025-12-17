@@ -11,7 +11,10 @@ import {
   calculateRemainingTime,
   completeTimerSession,
   shouldBlockByTimer,
-  isTimerAllowingAll
+  isTimerAllowingAll,
+  domainAllowed,
+  isMonitoringActive,
+  getMonitoringStatus
 } from '../common/utils';
 import type { ExtensionSettings, Zone } from '../types/index';
 
@@ -74,9 +77,10 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     
     console.log('[Focus Shield] Tab update - monitoring:', settings.monitoring, 'zones:', settings.zones.length, 'timer:', timer.state, 'url:', tab.url);
 
-    // Early exit if not monitoring
-    if (!settings.monitoring) {
-      console.log('[Focus Shield] Monitoring disabled');
+    // Early exit if not monitoring or snoozed/disabled
+    const monitoringStatus = getMonitoringStatus(settings);
+    if (!isMonitoringActive(settings)) {
+      console.log('[Focus Shield] Monitoring inactive:', monitoringStatus.state, 'until', monitoringStatus.expiresAt);
       return;
     }
 
@@ -87,6 +91,11 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // Check if timer is allowing all sites (during break)
     if (isTimerAllowingAll(timer)) {
       console.log('[Focus Shield] Timer in break mode - allowing all sites');
+      return;
+    }
+    // Timer allowlist short-circuit
+    if (domainAllowed(tab.url, timer.timerAllowlist || [])) {
+      console.log('[Focus Shield] Allowed by timer allowlist');
       return;
     }
     
@@ -153,6 +162,12 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     // Check each zone
     for (const zone of enabledZones) {
+      // Allowlist overrides zone blocking
+      if (domainAllowed(tab.url, zone.allowlist || [])) {
+        console.log('[Focus Shield] Allowed by zone allowlist:', zone.name);
+        continue;
+      }
+
       // Check if URL matches this zone's blocklist
       if (!domainMatches(tab.url, zone.blocklist)) {
         continue; // Try next zone

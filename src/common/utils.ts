@@ -54,6 +54,22 @@ export function parseBlocklist(text: string): string[] {
 }
 
 /**
+ * Check if a URL matches any domain in the allowlist
+ */
+export function domainAllowed(url: string, allowlist: string[] = []): boolean {
+  try {
+    const u = new URL(url);
+    const host = u.host.replace(/^www\./, '').toLowerCase();
+    return allowlist.some((domain) => {
+      const d = domain.toLowerCase().trim();
+      return host === d || host.endsWith('.' + d);
+    });
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Check if a URL matches any domain in the blocklist
  */
 export function domainMatches(url: string, blocklist: string[]): boolean {
@@ -135,7 +151,8 @@ export function getDefaultTimer(): PomodoroTimer {
     soundEnabled: true,
     blockDuringFocus: true,
     allowedDuringBreak: true,
-    timerBlocklist: ['youtube.com', 'reddit.com', 'twitter.com', 'facebook.com', 'instagram.com']
+    timerBlocklist: ['youtube.com', 'reddit.com', 'twitter.com', 'facebook.com', 'instagram.com'],
+    timerAllowlist: []
   };
 }
 
@@ -199,6 +216,8 @@ export async function getSettings(): Promise<ExtensionSettings> {
     'monitoring',
     'currentPosition',
     'pomodoroTimer',
+    'snoozeUntil',
+    'disabledUntil',
     // Legacy keys for migration
     'zone',
     'radius',
@@ -210,12 +229,21 @@ export async function getSettings(): Promise<ExtensionSettings> {
   if (data.zone && !data.zones) {
     return await migrateLegacySettings(data);
   }
+
+  const now = Date.now();
+  const snoozeExpired = data.snoozeUntil && data.snoozeUntil < now;
+  const disabledExpired = data.disabledUntil && data.disabledUntil < now;
+
+  if (snoozeExpired) data.snoozeUntil = null;
+  if (disabledExpired) data.disabledUntil = null;
   
   return {
-    zones: Array.isArray(data.zones) ? data.zones : [],
+    zones: Array.isArray(data.zones) ? data.zones.map((z: Zone) => ({ ...z, allowlist: z.allowlist || [] })) : [],
     monitoring: data.monitoring || false,
     currentPosition: data.currentPosition || null,
-    pomodoroTimer: data.pomodoroTimer || getDefaultTimer()
+    pomodoroTimer: { ...(data.pomodoroTimer || getDefaultTimer()), timerAllowlist: (data.pomodoroTimer && data.pomodoroTimer.timerAllowlist) || [] },
+    snoozeUntil: data.snoozeUntil || null,
+    disabledUntil: data.disabledUntil || null
   };
 }
 
@@ -363,6 +391,28 @@ export async function saveTimerState(timer: Partial<PomodoroTimer>): Promise<voi
   const current = await getTimerState();
   const updated = { ...current, ...timer };
   await saveSettings({ pomodoroTimer: updated });
+}
+
+/**
+ * Determine whether monitoring is currently active (respects snooze/disable windows)
+ */
+export function isMonitoringActive(settings: ExtensionSettings): boolean {
+  const now = Date.now();
+  if (!settings.monitoring) return false;
+  if (settings.disabledUntil && settings.disabledUntil > now) return false;
+  if (settings.snoozeUntil && settings.snoozeUntil > now) return false;
+  return true;
+}
+
+/**
+ * Remaining snooze/disable time helper
+ */
+export function getMonitoringStatus(settings: ExtensionSettings): { state: 'active' | 'snoozed' | 'disabled' | 'idle'; expiresAt: number | null; } {
+  const now = Date.now();
+  if (!settings.monitoring) return { state: 'idle', expiresAt: null };
+  if (settings.disabledUntil && settings.disabledUntil > now) return { state: 'disabled', expiresAt: settings.disabledUntil };
+  if (settings.snoozeUntil && settings.snoozeUntil > now) return { state: 'snoozed', expiresAt: settings.snoozeUntil };
+  return { state: 'active', expiresAt: null };
 }
 
 /**
@@ -572,6 +622,10 @@ export function formatTime(seconds: number): string {
 export function shouldBlockByTimer(timer: PomodoroTimer, url: string): boolean {
   // Only block during focus sessions if enabled
   if (timer.state !== 'focus' || !timer.blockDuringFocus) {
+    return false;
+  }
+  // Allowlist wins over blocklist
+  if (domainAllowed(url, timer.timerAllowlist || [])) {
     return false;
   }
   

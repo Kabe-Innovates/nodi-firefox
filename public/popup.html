@@ -91,6 +91,14 @@
               placeholder="youtube.com, reddit.com, twitter.com"
             ></textarea>
           </div>
+          <div class="form-group">
+            <label for="timer-allowlist">Timer Allowlist (always allowed)</label>
+            <textarea
+              id="timer-allowlist"
+              rows="2"
+              placeholder="work.zoom.us, docs.company.com"
+            ></textarea>
+          </div>
           <button id="save-timer-config" class="btn btn-primary" style="width: 100%;">Save Timer Settings</button>
         </details>
       </section>
@@ -100,6 +108,17 @@
         <label class="status-label">Current Status</label>
         <div class="status-display">
           <span id="status-text" class="status-badge">Idle</span>
+          <span id="status-detail" class="status-detail"></span>
+        </div>
+        <div class="quick-actions">
+          <button id="quick-monitoring-toggle" class="btn btn-secondary btn-sm">Toggle Monitoring</button>
+          <div class="quick-actions-row">
+            <button id="snooze-10" class="btn btn-tertiary btn-sm">Snooze 10m</button>
+            <button id="snooze-30" class="btn btn-tertiary btn-sm">Snooze 30m</button>
+            <button id="snooze-60" class="btn btn-tertiary btn-sm">Snooze 60m</button>
+          </div>
+          <button id="disable-today" class="btn btn-tertiary btn-sm" style="width: 100%;">Disable for Today</button>
+          <button id="clear-snooze" class="btn btn-secondary btn-sm" style="width: 100%;">Resume Now</button>
         </div>
       </section>
 
@@ -175,6 +194,14 @@
               id="zone-blocklist"
               rows="3"
               placeholder="youtube.com, facebook.com, instagram.com"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="zone-allowlist">Allowed Domains (never block in this zone)</label>
+            <textarea
+              id="zone-allowlist"
+              rows="2"
+              placeholder="docs.company.com, mail.company.com"
             ></textarea>
           </div>
           

@@ -18,6 +18,7 @@ export interface Zone {
   location: GeoLocation; // Center point of the zone
   radius: number; // Radius in meters
   blocklist: string[]; // Domains to block in this zone
+  allowlist?: string[]; // Domains to allow even inside this zone
   timeSchedule: TimeSchedule; // When this zone is active
   enabled: boolean; // Whether this zone is currently active
   color?: string; // Optional color for UI identification
@@ -50,6 +51,7 @@ export interface PomodoroTimer {
   blockDuringFocus: boolean; // Enable blocking during focus sessions
   allowedDuringBreak: boolean; // Disable blocking during breaks
   timerBlocklist: string[]; // Domains to block during focus
+  timerAllowlist?: string[]; // Domains to always allow during focus
 }
 
 export interface ExtensionSettings {
@@ -57,6 +59,8 @@ export interface ExtensionSettings {
   monitoring: boolean;
   currentPosition: GeoLocation | null;
   pomodoroTimer: PomodoroTimer;
+  snoozeUntil?: number | null; // Timestamp when snooze expires
+  disabledUntil?: number | null; // Timestamp when disabled state expires
   
   // Legacy fields for migration (will be removed after migration)
   zone?: GeoLocation | null;
