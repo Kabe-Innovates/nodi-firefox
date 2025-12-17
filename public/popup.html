@@ -11,12 +11,13 @@
       <header class="header">
         <h1>Focus Shield</h1>
         <p class="subtitle">Stay focused, stay productive</p>
+        <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode">🌙</button>
       </header>
 
       <!-- Timer Section -->
       <section class="timer-section" id="timer-section">
         <div class="timer-header">
-          <h2>🍅 Pomodoro Timer</h2>
+          <h2>Pomodoro Timer</h2>
           <span id="timer-state-badge" class="state-badge idle">Idle</span>
         </div>
         
@@ -107,8 +108,8 @@
       <section class="status-section">
         <label class="status-label">Current Status</label>
         <div class="status-display">
-          <span id="status-text" class="status-badge">Idle</span>
-          <span id="status-detail" class="status-detail"></span>
+          <div id="status-dot" class="status-dot idle"></div>
+          <span id="status-detail" class="status-detail">Monitoring is idle</span>
         </div>
         <div class="quick-actions">
           <button id="quick-monitoring-toggle" class="btn btn-secondary btn-sm">Toggle Monitoring</button>
@@ -175,7 +176,7 @@
           <div class="form-group">
             <label>Location</label>
             <button id="zone-set-current-location" class="btn btn-secondary">
-              📍 Use Current Location
+              Use Current Location
             </button>
             <div style="display: flex; gap: 8px; margin-top: 8px;">
               <input type="number" id="zone-lat" placeholder="Latitude" step="0.0001" style="flex: 1;" />
@@ -278,7 +279,7 @@
         <h2>Current Position</h2>
         <div class="form-group">
           <button id="set-current-position" class="btn btn-secondary">
-            📍 Update Current Position
+            Update Current Position
           </button>
           <p id="current-position-display" style="font-size: 12px; color: #888; margin-top: 8px;">
             Not set

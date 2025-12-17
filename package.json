@@ -1,7 +1,26 @@
 {
   "name": "focus-shield",
   "version": "1.0.0",
-  "description": "Privacy-first Firefox MV3 extension that blocks distracting websites inside a Productive Zone",
+  "description": "Location-based website blocker for Firefox. Block distracting sites in your focus zones.",
+  "author": "Kabe-Innovates",
+  "license": "MIT",
+  "homepage": "https://github.com/Kabe-Innovates/unNamed#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kabe-Innovates/unNamed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Kabe-Innovates/unNamed/issues"
+  },
+  "keywords": [
+    "firefox-extension",
+    "website-blocker",
+    "productivity",
+    "focus",
+    "pomodoro",
+    "geolocation",
+    "privacy"
+  ],
   "type": "module",
   "scripts": {
     "dev": "webpack --mode development --watch",

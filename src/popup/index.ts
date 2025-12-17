@@ -25,7 +25,11 @@ import type { Zone, PomodoroTimer, TimerState } from '../types/index';
 // DOM ELEMENT REFERENCES
 // ============================================
 
-// Timer elements
+// Theme toggle element
+const themeToggle = document.getElementById('themeToggle')!;
+
+// Status dot element
+const statusDot = document.getElementById('status-dot')!;
 const timerStateBadge = document.getElementById('timer-state-badge')!;
 const timerTimeDisplay = document.getElementById('timer-time')!;
 const timerSessionDisplay = document.getElementById('timer-session')!;
@@ -50,7 +54,6 @@ const timerAllowlistTextarea = document.getElementById('timer-allowlist') as HTM
 const saveTimerConfigBtn = document.getElementById('save-timer-config')!;
 
 // Status and stats elements
-const statusText = document.getElementById('status-text')!;
 const statusDetail = document.getElementById('status-detail')!;
 const statsSection = document.getElementById('stats-section')!;
 const statBlockedCount = document.getElementById('stat-blocked-count')!;
@@ -111,6 +114,53 @@ function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info
   setTimeout(() => { feedbackElement.style.opacity = '0'; }, 3000);
 }
 
+// ============================================
+// THEME MANAGEMENT
+// ============================================
+
+async function loadTheme() {
+  const settings = await getSettings();
+  const isDark = settings.theme !== 'light';
+  if (!isDark) {
+    document.body.classList.add('light-theme');
+    themeToggle.textContent = '☀️';
+  } else {
+    document.body.classList.remove('light-theme');
+    themeToggle.textContent = '🌙';
+  }
+}
+
+async function toggleTheme() {
+  const settings = await getSettings();
+  const isDark = settings.theme !== 'light';
+  const newTheme = isDark ? 'light' : 'dark';
+  await saveSettings({ theme: newTheme });
+  await loadTheme();
+  setFeedback(`Switched to ${newTheme} theme`, 'info');
+}
+
+// ============================================
+// STATUS DISPLAY
+// ============================================
+async function updateStatusDisplay() {
+  const settings = await getSettings();
+  const status = getMonitoringStatus(settings);
+  
+  statusDot.className = `status-dot ${status.state}`;
+  
+  if (status.state === 'idle') {
+    statusDetail.textContent = 'Monitoring is idle';
+  } else if (status.state === 'active') {
+    statusDetail.textContent = 'Monitoring is active';
+  } else if (status.state === 'snoozed') {
+    const remaining = Math.ceil((status.expiresAt! - Date.now()) / 1000 / 60);
+    statusDetail.textContent = `Snoozed for ${remaining}m`;
+  } else if (status.state === 'disabled') {
+    statusDetail.textContent = 'Disabled until tomorrow';
+  }
+  monitoringEnabledCheckbox.checked = isMonitoringActive(settings);
+}
+
 async function setSnooze(minutes: number) {
   const until = Date.now() + minutes * 60 * 1000;
   await saveSettings({ snoozeUntil: until, disabledUntil: null, monitoring: true });
@@ -137,20 +187,6 @@ async function updateTimerDisplay() {
   const remaining = calculateRemainingTime(timer);
   
   timerTimeDisplay.textContent = formatTime(remaining);
-async function setSnooze(minutes: number) {
-  const until = Date.now() + minutes * 60 * 1000;
-  await saveSettings({ snoozeUntil: until, disabledUntil: null, monitoring: true });
-  await updateStatusDisplay();
-  setFeedback(`Snoozed for ${minutes} minutes`, 'info');
-}
-
-async function disableForToday() {
-  const now = new Date();
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).getTime();
-  await saveSettings({ disabledUntil: endOfDay, snoozeUntil: null, monitoring: true });
-  await updateStatusDisplay();
-  setFeedback('Disabled until tomorrow', 'info');
-}
   timerSessionDisplay.textContent = `Session ${timer.currentSession}`;
   timerStateBadge.textContent = timer.state.replace('-', ' ');
   timerStateBadge.className = `state-badge ${timer.state}`;
@@ -389,7 +425,6 @@ async function loadStatistics() {
     blockedSitesList.innerHTML = '<p style="color: #888; font-size: 12px;">No sites blocked yet</p>';
   }
 }
-
 // ============================================
 // CURRENT POSITION FUNCTIONS
 // ============================================
@@ -406,42 +441,12 @@ async function updateCurrentPositionDisplay() {
   }
 }
 
-async function updateStatusDisplay() {
-  const settings = await getSettings();
-  const status = getMonitoringStatus(settings);
-  let text = 'Idle';
-  let detail = '';
-  statusText.className = 'status-badge';
-  
-  if (!settings.monitoring) {
-    text = 'Idle';
-    statusText.classList.add('idle');
-  } else if (status.state === 'disabled') {
-    text = 'Disabled Today';
-    statusText.classList.add('disabled');
-    if (status.expiresAt) {
-      const minutes = Math.ceil((status.expiresAt - Date.now()) / 60000);
-      detail = `until end of day (~${minutes}m)`;
-    }
-  } else if (status.state === 'snoozed') {
-    text = 'Snoozed';
-    statusText.classList.add('snoozed');
-    if (status.expiresAt) {
-      const minutes = Math.max(1, Math.ceil((status.expiresAt - Date.now()) / 60000));
-      detail = `resumes in ~${minutes}m`;
-    }
-  } else {
-    text = 'Monitoring';
-    statusText.classList.add('monitoring');
-  }
-  statusText.textContent = text;
-  statusDetail.textContent = detail;
-  monitoringEnabledCheckbox.checked = isMonitoringActive(settings);
-}
-
 // ============================================
 // EVENT LISTENERS
 // ============================================
+
+// Theme toggle
+themeToggle.addEventListener('click', toggleTheme);
 
 // Timer controls
 timerStartBtn.addEventListener('click', async () => {
@@ -718,6 +723,7 @@ clearSnoozeBtn.addEventListener('click', async () => {
 async function init() {
   console.log('[Focus Shield] Popup initialized');
   
+  await loadTheme();
   await updateTimerDisplay();
   await loadTimerConfig();
   await loadStatistics();

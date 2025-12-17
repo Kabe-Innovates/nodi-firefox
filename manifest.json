@@ -2,7 +2,9 @@
   "manifest_version": 3,
   "name": "Focus Shield",
   "version": "1.0.0",
-  "description": "Privacy-first Firefox MV3 extension that blocks distracting websites inside a Productive Zone",
+  "description": "Location-based website blocker for Firefox. Block distracting sites in your focus zones.",
+  "author": "Kabe-Innovates",
+  "homepage_url": "https://github.com/Kabe-Innovates/unNamed",
   "permissions": [
     "geolocation",
     "storage",
@@ -14,7 +16,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "focus-shield@example.com"
+      "id": "focus-shield@kabe-innovates.dev"
     }
   },
   "action": {
