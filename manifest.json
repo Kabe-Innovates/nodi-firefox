@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Focus Shield",
+  "version": "1.0.0",
+  "description": "Privacy-first Firefox MV3 extension that blocks distracting websites inside a Productive Zone",
+  "permissions": [
+    "geolocation",
+    "storage",
+    "tabs",
+    "notifications"
+  ],
+  "host_permissions": [
+    "data:/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "focus-shield@example.com"
+    }
+  },
+  "action": {
+    "default_title": "Focus Shield",
+    "default_popup": "public/popup.html"
+  },
+  "options_ui": {
+    "page": "public/options.html",
+    "browser_style": false
+  },
+  "background": {
+    "scripts": ["dist/background.js"],
+    "type": "classic"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ]
+}

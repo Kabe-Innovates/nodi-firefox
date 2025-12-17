@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Focus Shield - Popup</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Focus Shield</h1>
+        <p class="subtitle">Stay focused, stay productive</p>
+      </header>
+
+      <section class="status-section">
+        <label class="status-label">Current Status</label>
+        <div class="status-display">
+          <span id="status-text" class="status-badge">Idle</span>
+        </div>
+      </section>
+
+      <section class="stats-section" id="stats-section" style="display: none;">
+        <h2>Today's Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-blocked-count">0</div>
+            <div class="stat-label">Blocked Attempts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-top-site">-</div>
+            <div class="stat-label">Top Blocked</div>
+          </div>
+        </div>
+        <div class="blocked-sites">
+          <h3>Most Blocked Sites</h3>
+          <div id="blocked-sites-list" style="max-height: 120px; overflow-y: auto;">
+            <p style="color: #888; font-size: 12px;">No sites blocked yet</p>
+          </div>
+        </div>
+        <button id="reset-stats" class="btn btn-tertiary" style="width: 100%; margin-top: 10px;">Reset Statistics</button>
+      </section>
+
+      <section class="settings-section">
+        <h2>Zone Configuration</h2>
+
+        <div class="form-group">
+          <button id="set-location" class="btn btn-secondary">
+            📍 Set Current Location as Work Zone
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Manual Location (Latitude, Longitude)</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" id="manual-lat" placeholder="Latitude" step="0.0001" style="flex: 1;" />
+            <input type="number" id="manual-lon" placeholder="Longitude" step="0.0001" style="flex: 1;" />
+          </div>
+          <button id="set-manual-location" class="btn btn-secondary" style="width: 100%; margin-top: 8px;">
+            Set Manual Location
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="radius">Radius (meters)</label>
+          <input type="number" id="radius" min="1" max="10000" value="50" />
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="time-schedule-enabled" />
+            <span>Enable Time-Based Blocking</span>
+          </label>
+        </div>
+
+        <div id="time-schedule-settings" style="display: none;">
+          <div class="form-group">
+            <label>Work Hours</label>
+            <div style="display: flex; gap: 8px; align-items: center; font-size: 13px;">
+              <input type="number" id="start-hour" min="0" max="23" value="9" style="width: 60px;" />
+              <span style="color: #888;">:</span>
+              <input type="number" id="start-minute" min="0" max="59" value="0" style="width: 60px;" />
+              <span style="color: #888;">to</span>
+              <input type="number" id="end-hour" min="0" max="23" value="17" style="width: 60px;" />
+              <span style="color: #888;">:</span>
+              <input type="number" id="end-minute" min="0" max="59" value="0" style="width: 60px;" />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Active Days</label>
+            <div class="days-selector">
+              <label class="day-checkbox">
+                <input type="checkbox" value="1" checked />
+                <span>Mon</span>
+              </label>
+              <label class="day-checkbox">
+                <input type="checkbox" value="2" checked />
+                <span>Tue</span>
+              </label>
+              <label class="day-checkbox">
+                <input type="checkbox" value="3" checked />
+                <span>Wed</span>
+              </label>
+              <label class="day-checkbox">
+                <input type="checkbox" value="4" checked />
+                <span>Thu</span>
+              </label>
+              <label class="day-checkbox">
+                <input type="checkbox" value="5" checked />
+                <span>Fri</span>
+              </label>
+              <label class="day-checkbox">
+                <input type="checkbox" value="6" />
+                <span>Sat</span>
+              </label>
+              <label class="day-checkbox">
+                <input type="checkbox" value="0" />
+                <span>Sun</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="blocklist">Blocked Domains</label>
+          <textarea
+            id="blocklist"
+            rows="4"
+            placeholder="youtube.com, facebook.com, instagram.com"
+          ></textarea>
+        </div>
+
+        <button id="save-settings" class="btn btn-primary">Save Settings</button>
+        <div id="feedback" class="feedback" aria-live="polite" role="status"></div>
+      </section>
+
+      <footer class="footer">
+        <p>v1.0.0 • Privacy first</p>
+      </footer>
+    </div>
+
+    <script src="../dist/popup.js"></script>
+  </body>
+</html>
