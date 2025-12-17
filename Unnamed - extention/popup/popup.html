@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Focus Shield</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Focus Shield</h1>
+
+    <div class="status">
+      <span>Current Status:</span>
+      <strong id="status-text">Idle</strong>
+    </div>
+
+    <section class="section">
+      <h2>Zone Configuration</h2>
+      <button id="set-location" class="btn">📍 Set Current Location as Work Zone</button>
+
+      <label class="field">
+        <span>Radius (meters)</span>
+        <input type="number" id="radius" min="1" value="50" />
+      </label>
+
+      <label class="field">
+        <span>Blocked Domains</span>
+        <textarea id="blocklist" rows="4" placeholder="youtube.com, facebook.com, instagram.com">youtube.com, facebook.com, instagram.com</textarea>
+      </label>
+
+      <button id="save-settings" class="btn primary">Save Settings</button>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

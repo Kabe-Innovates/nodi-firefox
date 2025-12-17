@@ -1,0 +1,45 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; }
+
+:root {
+  color-scheme: dark;
+  --bg: #111317;
+  --panel: #1a1d24;
+  --text: #e6e6e6;
+  --muted: #a4a7ae;
+  --primary: #4f8cff;
+  --primary-hover: #3a73e6;
+  --border: #2a2e36;
+  --success: #36c36c;
+}
+
+body { background: var(--bg); color: var(--text); }
+.container { padding: 16px; width: 360px; }
+
+h1 { font-size: 18px; margin: 0 0 12px; }
+.section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+
+.status { display: flex; gap: 8px; align-items: baseline; margin-bottom: 12px; color: var(--muted); }
+.status #status-text { color: var(--text); }
+
+.field { display: grid; grid-template-columns: 1fr; gap: 6px; margin: 10px 0; }
+.field span { color: var(--muted); font-size: 12px; }
+
+input[type="number"], textarea {
+  width: 100%;
+  background: #11161d;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  color: var(--text);
+  outline: none;
+}
+input[type="number"]:focus, textarea:focus { border-color: var(--primary); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: #12151b; color: var(--text); cursor: pointer; }
+.btn:hover { background: #171b22; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+.btn.primary:hover { background: var(--primary-hover); }
+
+.feedback { margin-top: 10px; min-height: 20px; font-size: 12px; color: var(--success); }
