@@ -1,11 +1,12 @@
-# Focus Shield
+# Nodi (நொடி)
+/no-di/ • *noun* • Tamil for "moment" or "second."
 
-Location-based website blocker for Firefox. Block distracting sites when you're in your designated focus zones.
+**A location-based website blocker for Firefox.**
+Block distracting sites instantly when you enter your designated focus zones.ter your designated focus zones.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Firefox](https://img.shields.io/badge/Firefox-109%2B-orange.svg)](https://www.mozilla.org/firefox/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
-
 ## Features
 
 - **Zone-based blocking** — Define multiple focus zones with GPS coordinates

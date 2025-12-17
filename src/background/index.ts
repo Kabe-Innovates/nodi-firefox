@@ -44,15 +44,15 @@ function startTimerInterval() {
       
       // Check if session complete
       if (remaining <= 0) {
-        console.log('[Focus Shield] Timer session complete:', timer.state);
+        console.log('[Nodi] Timer session complete:', timer.state);
         await completeTimerSession();
       }
     } catch (error) {
-      console.error('[Focus Shield] Timer interval error:', error);
+      console.error('[Nodi] Timer interval error:', error);
     }
   }, 1000); // Every second
   
-  console.log('[Focus Shield] Timer interval started');
+  console.log('[Nodi] Timer interval started');
 }
 
 // Start timer interval when extension loads
@@ -75,12 +75,12 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const settings: ExtensionSettings = await getSettings();
     const timer = await getTimerState();
     
-    console.log('[Focus Shield] Tab update - monitoring:', settings.monitoring, 'zones:', settings.zones.length, 'timer:', timer.state, 'url:', tab.url);
+    console.log('[Nodi] Tab update - monitoring:', settings.monitoring, 'zones:', settings.zones.length, 'timer:', timer.state, 'url:', tab.url);
 
     // Early exit if not monitoring or snoozed/disabled
     const monitoringStatus = getMonitoringStatus(settings);
     if (!isMonitoringActive(settings)) {
-      console.log('[Focus Shield] Monitoring inactive:', monitoringStatus.state, 'until', monitoringStatus.expiresAt);
+      console.log('[Nodi] Monitoring inactive:', monitoringStatus.state, 'until', monitoringStatus.expiresAt);
       return;
     }
 
@@ -90,18 +90,18 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     
     // Check if timer is allowing all sites (during break)
     if (isTimerAllowingAll(timer)) {
-      console.log('[Focus Shield] Timer in break mode - allowing all sites');
+      console.log('[Nodi] Timer in break mode - allowing all sites');
       return;
     }
     // Timer allowlist short-circuit
     if (domainAllowed(tab.url, timer.timerAllowlist || [])) {
-      console.log('[Focus Shield] Allowed by timer allowlist');
+      console.log('[Nodi] Allowed by timer allowlist');
       return;
     }
     
     // Check if timer should block this site
     if (shouldBlockByTimer(timer, tab.url)) {
-      console.log('[Focus Shield] Blocked by Pomodoro Timer:', tab.url);
+      console.log('[Nodi] Blocked by Pomodoro Timer:', tab.url);
       logBlockedRequest(tab.url, 'Blocked during Focus Session');
       
       const domain = extractDomain(tab.url);
@@ -115,7 +115,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Blocked by Focus Shield</title>
+          <title>Blocked by Nodi</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; margin: 0; padding: 20px; background: #0f1419; color: #e6e8eb; }
             .container { max-width: 600px; margin: 50px auto; text-align: center; }
@@ -148,7 +148,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     
     // Check if current position is set
     if (!settings.currentPosition) {
-      console.log('[Focus Shield] No current position set');
+      console.log('[Nodi] No current position set');
       return;
     }
 
@@ -156,7 +156,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const enabledZones = settings.zones.filter(z => z.enabled);
     
     if (enabledZones.length === 0) {
-      console.log('[Focus Shield] No enabled zones');
+      console.log('[Nodi] No enabled zones');
       return;
     }
 
@@ -164,7 +164,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     for (const zone of enabledZones) {
       // Allowlist overrides zone blocking
       if (domainAllowed(tab.url, zone.allowlist || [])) {
-        console.log('[Focus Shield] Allowed by zone allowlist:', zone.name);
+        console.log('[Nodi] Allowed by zone allowlist:', zone.name);
         continue;
       }
 
@@ -173,7 +173,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         continue; // Try next zone
       }
 
-      console.log('[Focus Shield] URL matches zone blocklist:', zone.name, tab.url);
+      console.log('[Nodi] URL matches zone blocklist:', zone.name, tab.url);
 
       // Calculate distance to this zone
       const distance = haversine(
@@ -183,11 +183,11 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         zone.location.lon
       );
 
-      console.log('[Focus Shield] Distance from zone', zone.name, ':', distance.toFixed(0), 'm (radius:', zone.radius, 'm)');
+      console.log('[Nodi] Distance from zone', zone.name, ':', distance.toFixed(0), 'm (radius:', zone.radius, 'm)');
 
       // Check if within this zone's schedule
       if (!isWithinSchedule(zone.timeSchedule)) {
-        console.log('[Focus Shield] Outside scheduled hours for zone:', zone.name);
+        console.log('[Nodi] Outside scheduled hours for zone:', zone.name);
         continue; // Try next zone
       }
 
@@ -197,13 +197,13 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         
         const domain = extractDomain(tab.url);
         await recordBlockedSite(domain, zone.id, false); // zoneId, not fromTimer
-        console.log('[Focus Shield] Recorded blocked site:', domain, 'for zone:', zone.name);
+        console.log('[Nodi] Recorded blocked site:', domain, 'for zone:', zone.name);
         
         const blockedHtml = `
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Blocked by Focus Shield</title>
+            <title>Blocked by Nodi</title>
             <style>
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; margin: 0; padding: 20px; background: #0f1419; color: #e6e8eb; }
               .container { max-width: 600px; margin: 50px auto; text-align: center; }
@@ -214,7 +214,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           </head>
           <body>
             <div class="container">
-              <h1>🛑 Blocked by Focus Shield</h1>
+              <h1>🛑 Blocked by Nodi</h1>
               <div class="zone-badge">${zone.name}</div>
               <p>This site is blocked while you're in your productivity zone.</p>
               <p><small>Distance: ${distance.toFixed(0)}m | Radius: ${zone.radius}m</small></p>
@@ -232,8 +232,8 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
     
   } catch (error) {
-    console.error('[Focus Shield] Tab update handler error:', error);
+    console.error('[Nodi] Tab update handler error:', error);
   }
 });
 
-console.log('[Focus Shield] Background service worker initialized');
+console.log('[Nodi] Background service worker initialized');

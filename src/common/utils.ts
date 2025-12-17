@@ -160,7 +160,7 @@ export function getDefaultTimer(): PomodoroTimer {
  * Migrate legacy single zone settings to multi-zone format
  */
 async function migrateLegacySettings(data: any): Promise<ExtensionSettings> {
-  console.log('[Focus Shield] Migrating legacy settings to multi-zone format');
+  console.log('[Nodi] Migrating legacy settings to multi-zone format');
   
   const zones: Zone[] = [];
   
@@ -203,7 +203,7 @@ async function migrateLegacySettings(data: any): Promise<ExtensionSettings> {
   // Clean up old keys
   await browser.storage.local.remove(['zone', 'radius', 'blocklist', 'timeSchedule']);
   
-  console.log('[Focus Shield] Migration complete:', migrated);
+  console.log('[Nodi] Migration complete:', migrated);
   return migrated;
 }
 

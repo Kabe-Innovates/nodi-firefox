@@ -721,7 +721,7 @@ clearSnoozeBtn.addEventListener('click', async () => {
 // ============================================
 
 async function init() {
-  console.log('[Focus Shield] Popup initialized');
+  console.log('[Nodi] Popup initialized');
   
   await loadTheme();
   await updateTimerDisplay();

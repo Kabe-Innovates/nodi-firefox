@@ -25,7 +25,7 @@ function setFeedback(text: string): void {
 async function loadOptions(): Promise<void> {
   const settings = await getSettings();
   // Options page is deprecated - just log
-  console.log('[Focus Shield] Settings:', settings);
+  console.log('[Nodi] Settings:', settings);
 }
 
 /**

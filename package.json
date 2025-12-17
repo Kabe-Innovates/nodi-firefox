@@ -1,7 +1,7 @@
 {
-  "name": "focus-shield",
+  "name": "nodi",
   "version": "1.0.0",
-  "description": "Location-based website blocker for Firefox. Block distracting sites in your focus zones.",
+  "description": "Nodi is a location-based website blocker for Firefox. Block distracting sites in your focus zones.",
   "author": "Kabe-Innovates",
   "license": "MIT",
   "homepage": "https://github.com/Kabe-Innovates/unNamed#readme",

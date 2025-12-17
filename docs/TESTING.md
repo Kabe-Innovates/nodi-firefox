@@ -1,4 +1,4 @@
-# Focus Shield - Testing Guide
+# Nodi - Testing Guide
 
 ## Prerequisites
 - Firefox 109+ or Zen Browser
@@ -27,7 +27,7 @@
 2. Go to "Console" tab to view logs
 3. Click the extension icon in the toolbar to open the popup
 4. You should see:
-   - "Focus Shield" header
+   - "Nodi" header
    - Status: "Idle" (gray)
    - Set Location button
    - Radius input (default: 50)
@@ -38,14 +38,14 @@
 
 1. Click "Set Current Location as Work Zone" button
 2. Browser may prompt for location access - **Click "Allow"** or "Share"
-3. Watch the console for logs like: `[Focus Shield] Location saved: { lat: ..., lon: ... }`
+3. Watch the console for logs like: `[Nodi] Location saved: { lat: ..., lon: ... }`
 4. You should see feedback: "Location Saved!"
 5. Status should remain "Idle" (location is saved, but monitoring not enabled yet)
 
 **Troubleshooting:**
 - If no location prompt appears, check browser location settings
 - If permission denied, check privacy settings for localhost/extension
-- Look for console error messages starting with `[Focus Shield]`
+- Look for console error messages starting with `[Nodi]`
 
 ### 4. Configure Blocked Websites
 
@@ -61,7 +61,7 @@
    - Increase to 500+ meters for real-world use across a room/floor
 
 3. Click "Save Settings"
-4. Watch console for: `[Focus Shield] Saving settings...` and `[Focus Shield] Settings saved successfully:`
+4. Watch console for: `[Nodi] Saving settings...` and `[Nodi] Settings saved successfully:`
 5. Status should change to: "Monitoring" (green)
 6. You should see feedback: "Settings saved. Monitoring enabled."
 
@@ -76,15 +76,15 @@
 
 1. In the address bar, navigate to one of your blocked domains (e.g., `youtube.com`)
 2. If blocking works, you should see:
-   - Page changes to "🛑 Blocked by Focus Shield"
+   - Page changes to "🛑 Blocked by Nodi"
    - Message: "This site is blocked while you're in your Productivity Zone"
    - Distance and radius info displayed
 
 3. Console should show:
    ```
-   [Focus Shield] Tab update - monitoring: true, zone: {...}, url: ...
-   [Focus Shield] URL matches blocklist: youtube.com
-   [Focus Shield] Distance from zone: 15.32 radius: 50
+   [Nodi] Tab update - monitoring: true, zone: {...}, url: ...
+   [Nodi] URL matches blocklist: youtube.com
+   [Nodi] Distance from zone: 15.32 radius: 50
    [TIMESTAMP] BLOCKED: youtube.com - Inside Productivity Zone
    ```
 
@@ -113,7 +113,7 @@ If blocking doesn't work, check these in order:
 
 - [ ] Extension loaded in `about:debugging`
 - [ ] Status shows "Monitoring" (green) in popup
-- [ ] Console shows `[Focus Shield] Background service worker initialized`
+- [ ] Console shows `[Nodi] Background service worker initialized`
 - [ ] Location was granted (look for geolocation prompt or console messages)
 - [ ] Blocked domain is spelled correctly in blocklist
 - [ ] Radius is not extremely small (< 10m)

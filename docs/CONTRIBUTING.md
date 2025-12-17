@@ -1,4 +1,4 @@
-# Contributing to Focus Shield
+# Contributing to Nodi
 
 ## Code of Conduct
 

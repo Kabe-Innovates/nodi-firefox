@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Focus Shield",
+  "name": "Nodi",
   "version": "1.0.0",
   "description": "Location-based website blocker for Firefox. Block distracting sites in your focus zones.",
   "author": "Kabe-Innovates",
@@ -16,11 +16,11 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "focus-shield@kabe-innovates.dev"
+      "id": "nodi@kabe-innovates.dev"
     }
   },
   "action": {
-    "default_title": "Focus Shield",
+    "default_title": "Nodi",
     "default_popup": "public/popup.html"
   },
   "options_ui": {
