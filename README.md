@@ -70,7 +70,6 @@ dist/               # Compiled output (generated)
 
 ## Documentation
 
-- [Quick Start Guide](docs/QUICKSTART.md)
 - [Testing Guide](docs/TESTING.md)
 - [Contributing](docs/CONTRIBUTING.md)
 
