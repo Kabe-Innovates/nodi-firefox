@@ -1,1 +1,0 @@
-// This file manages any content scripts that may be needed for overlay functionality in the browser.

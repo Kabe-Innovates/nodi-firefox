@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Nodi",
+  "version": "1.0.0",
+  "description": "Location-based website blocker for Firefox. Block distracting sites in your focus zones.",
+  "author": "Kabe-Innovates",
+  "homepage_url": "https://github.com/Kabe-Innovates/unNamed",
+  "permissions": [
+    "geolocation",
+    "storage",
+    "tabs",
+    "notifications"
+  ],
+  "host_permissions": [
+    "data:/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "nodi@kabe-innovates.dev"
+    }
+  },
+  "action": {
+    "default_title": "Nodi",
+    "default_popup": "public/popup.html"
+  },
+  "options_ui": {
+    "page": "public/options.html",
+    "browser_style": false
+  },
+  "background": {
+    "scripts": ["dist/background.js"],
+    "type": "classic"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ]
+}

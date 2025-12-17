@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nodi - Popup</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Nodi</h1>
+        <p class="subtitle">Stay focused, stay productive</p>
+        <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode">🌙</button>
+      </header>
+
+      <!-- Timer Section -->
+      <section class="timer-section" id="timer-section">
+        <div class="timer-header">
+          <h2>Pomodoro Timer</h2>
+          <span id="timer-state-badge" class="state-badge idle">Idle</span>
+        </div>
+        
+        <div class="timer-display">
+          <div id="timer-time" class="timer-time">25:00</div>
+          <div id="timer-session" class="timer-session">Session 0</div>
+          <div class="timer-progress-container">
+            <div id="timer-progress-bar" class="timer-progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+        
+        <div class="timer-controls">
+          <button id="timer-start" class="btn btn-primary">Start Focus</button>
+          <button id="timer-pause" class="btn btn-secondary" style="display: none;">Pause</button>
+          <button id="timer-resume" class="btn btn-secondary" style="display: none;">Resume</button>
+          <button id="timer-reset" class="btn btn-tertiary">Reset</button>
+        </div>
+        
+        <details class="timer-config">
+          <summary>Timer Settings</summary>
+          <div class="form-group">
+            <label>Focus Duration (minutes)</label>
+            <input type="number" id="focus-duration" min="1" max="60" value="25" />
+          </div>
+          <div class="form-group">
+            <label>Short Break (minutes)</label>
+            <input type="number" id="short-break" min="1" max="30" value="5" />
+          </div>
+          <div class="form-group">
+            <label>Long Break (minutes)</label>
+            <input type="number" id="long-break" min="1" max="60" value="15" />
+          </div>
+          <div class="form-group">
+            <label>Long Break After (sessions)</label>
+            <input type="number" id="long-break-interval" min="1" max="10" value="4" />
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="timer-auto-start-breaks" />
+              <span>Auto-start breaks</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="timer-auto-start-focus" />
+              <span>Auto-start focus after break</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="timer-notifications" checked />
+              <span>Enable notifications</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="timer-block-during-focus" checked />
+              <span>Block sites during focus</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="timer-allow-during-break" checked />
+              <span>Allow sites during break</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label for="timer-blocklist">Timer Blocklist</label>
+            <textarea
+              id="timer-blocklist"
+              rows="3"
+              placeholder="youtube.com, reddit.com, twitter.com"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="timer-allowlist">Timer Allowlist (always allowed)</label>
+            <textarea
+              id="timer-allowlist"
+              rows="2"
+              placeholder="work.zoom.us, docs.company.com"
+            ></textarea>
+          </div>
+          <button id="save-timer-config" class="btn btn-primary" style="width: 100%;">Save Timer Settings</button>
+        </details>
+      </section>
+
+      <!-- Status Section -->
+      <section class="status-section">
+        <label class="status-label">Current Status</label>
+        <div class="status-display">
+          <div id="status-dot" class="status-dot idle"></div>
+          <span id="status-detail" class="status-detail">Monitoring is idle</span>
+        </div>
+        <div class="quick-actions">
+          <button id="quick-monitoring-toggle" class="btn btn-secondary btn-sm">Toggle Monitoring</button>
+          <div class="quick-actions-row">
+            <button id="snooze-10" class="btn btn-tertiary btn-sm">Snooze 10m</button>
+            <button id="snooze-30" class="btn btn-tertiary btn-sm">Snooze 30m</button>
+            <button id="snooze-60" class="btn btn-tertiary btn-sm">Snooze 60m</button>
+          </div>
+          <button id="disable-today" class="btn btn-tertiary btn-sm" style="width: 100%;">Disable for Today</button>
+          <button id="clear-snooze" class="btn btn-secondary btn-sm" style="width: 100%;">Resume Now</button>
+        </div>
+      </section>
+
+      <!-- Statistics Section -->
+      <section class="stats-section" id="stats-section" style="display: none;">
+        <h2>Today's Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-blocked-count">0</div>
+            <div class="stat-label">Blocked Attempts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-timer-sessions">0</div>
+            <div class="stat-label">Focus Sessions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-top-site">-</div>
+            <div class="stat-label">Top Blocked</div>
+          </div>
+        </div>
+        <div class="blocked-sites">
+          <h3>Most Blocked Sites</h3>
+          <div id="blocked-sites-list" style="max-height: 120px; overflow-y: auto;">
+            <p style="color: #888; font-size: 12px;">No sites blocked yet</p>
+          </div>
+        </div>
+        <button id="reset-stats" class="btn btn-tertiary" style="width: 100%; margin-top: 10px;">Reset Statistics</button>
+      </section>
+
+      <!-- Zones Section -->
+      <section class="zones-section">
+        <div class="zones-header">
+          <h2>Productivity Zones</h2>
+          <button id="add-zone" class="btn btn-sm">+ Add Zone</button>
+        </div>
+        
+        <div id="zones-list" class="zones-list">
+          <!-- Zone cards will be dynamically added here -->
+          <p id="no-zones-message" style="color: #888; font-size: 13px; text-align: center; padding: 20px;">
+            No zones configured. Click "Add Zone" to create your first productivity zone.
+          </p>
+        </div>
+        
+        <!-- Add/Edit Zone Form (hidden by default) -->
+        <div id="zone-form" class="zone-form" style="display: none;">
+          <h3 id="zone-form-title">Add New Zone</h3>
+          <input type="hidden" id="zone-form-id" />
+          
+          <div class="form-group">
+            <label for="zone-name">Zone Name</label>
+            <input type="text" id="zone-name" placeholder="e.g., Office, Library, Home" />
+          </div>
+          
+          <div class="form-group">
+            <label>Location</label>
+            <button id="zone-set-current-location" class="btn btn-secondary">
+              Use Current Location
+            </button>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <input type="number" id="zone-lat" placeholder="Latitude" step="0.0001" style="flex: 1;" />
+              <input type="number" id="zone-lon" placeholder="Longitude" step="0.0001" style="flex: 1;" />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="zone-radius">Radius (meters)</label>
+            <input type="number" id="zone-radius" min="1" max="10000" value="50" />
+          </div>
+          
+          <div class="form-group">
+            <label for="zone-blocklist">Blocked Domains</label>
+            <textarea
+              id="zone-blocklist"
+              rows="3"
+              placeholder="youtube.com, facebook.com, instagram.com"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="zone-allowlist">Allowed Domains (never block in this zone)</label>
+            <textarea
+              id="zone-allowlist"
+              rows="2"
+              placeholder="docs.company.com, mail.company.com"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="zone-schedule-enabled" />
+              <span>Enable Time Schedule</span>
+            </label>
+          </div>
+          
+          <div id="zone-schedule-settings" style="display: none;">
+            <div class="form-group">
+              <label>Work Hours</label>
+              <div style="display: flex; gap: 8px; align-items: center; font-size: 13px;">
+                <input type="number" id="zone-start-hour" min="0" max="23" value="9" style="width: 60px;" />
+                <span style="color: #888;">:</span>
+                <input type="number" id="zone-start-minute" min="0" max="59" value="0" style="width: 60px;" />
+                <span style="color: #888;">to</span>
+                <input type="number" id="zone-end-hour" min="0" max="23" value="17" style="width: 60px;" />
+                <span style="color: #888;">:</span>
+                <input type="number" id="zone-end-minute" min="0" max="59" value="0" style="width: 60px;" />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Active Days</label>
+              <div class="days-selector">
+                <label class="day-checkbox">
+                  <input type="checkbox" value="1" checked />
+                  <span>Mon</span>
+                </label>
+                <label class="day-checkbox">
+                  <input type="checkbox" value="2" checked />
+                  <span>Tue</span>
+                </label>
+                <label class="day-checkbox">
+                  <input type="checkbox" value="3" checked />
+                  <span>Wed</span>
+                </label>
+                <label class="day-checkbox">
+                  <input type="checkbox" value="4" checked />
+                  <span>Thu</span>
+                </label>
+                <label class="day-checkbox">
+                  <input type="checkbox" value="5" checked />
+                  <span>Fri</span>
+                </label>
+                <label class="day-checkbox">
+                  <input type="checkbox" value="6" />
+                  <span>Sat</span>
+                </label>
+                <label class="day-checkbox">
+                  <input type="checkbox" value="0" />
+                  <span>Sun</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="zone-color">Zone Color</label>
+            <input type="color" id="zone-color" value="#5b9ff5" style="width: 100%; height: 40px; cursor: pointer;" />
+          </div>
+          
+          <div style="display: flex; gap: 8px;">
+            <button id="save-zone" class="btn btn-primary" style="flex: 1;">Save Zone</button>
+            <button id="cancel-zone" class="btn btn-tertiary" style="flex: 1;">Cancel</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Current Position Setter -->
+      <section class="settings-section">
+        <h2>Current Position</h2>
+        <div class="form-group">
+          <button id="set-current-position" class="btn btn-secondary">
+            Update Current Position
+          </button>
+          <p id="current-position-display" style="font-size: 12px; color: #888; margin-top: 8px;">
+            Not set
+          </p>
+        </div>
+        <div class="form-group">
+          <label>Manual Position (Latitude, Longitude)</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" id="manual-lat" placeholder="Latitude" step="0.0001" style="flex: 1;" />
+            <input type="number" id="manual-lon" placeholder="Longitude" step="0.0001" style="flex: 1;" />
+          </div>
+          <button id="set-manual-position" class="btn btn-secondary" style="width: 100%; margin-top: 8px;">
+            Set Manual Position
+          </button>
+        </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="monitoring-enabled" checked />
+            <span>Enable Monitoring</span>
+          </label>
+        </div>
+        <div id="feedback" class="feedback" aria-live="polite" role="status"></div>
+      </section>
+
+      <footer class="footer">
+        <p>v2.0.0 • Privacy first • Multi-Zone + Timer</p>
+      </footer>
+    </div>
+
+    <script src="../dist/popup.js"></script>
+  </body>
+</html>
