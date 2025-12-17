@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unnamed Extension Popup</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="popup-container">
+        <h1>Block Distracting Websites</h1>
+        <p>Manage your blocklist based on your location.</p>
+        <div>
+            <label for="location">Current Location:</label>
+            <input type="text" id="location" placeholder="Enter your location" />
+        </div>
+        <div>
+            <button id="block-button">Block Website</button>
+            <button id="unblock-button">Unblock Website</button>
+        </div>
+        <div id="status-message"></div>
+    </div>
+    <script src="popup.ts"></script>
+</body>
+</html>
