@@ -734,7 +734,12 @@ async function init() {
   startTimerUpdateLoop();
 }
 
-init();
+// Wait for DOM to be ready before initializing
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 window.addEventListener('beforeunload', () => {
   stopTimerUpdateLoop();
