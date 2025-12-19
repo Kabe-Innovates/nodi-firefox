@@ -17,9 +17,17 @@
       "id": "nodi@kabe-innovates.dev"
     }
   },
+  "icons": {
+    "48": "public/icon-48.png",
+    "96": "public/icon-96.png"
+  },
   "browser_action": {
     "default_title": "Nodi",
-    "default_popup": "public/popup.html"
+    "default_popup": "public/popup.html",
+    "default_icon": {
+      "16": "public/icon-48.png",
+      "32": "public/icon-48.png"
+    }
   },
   "options_ui": {
     "page": "public/options.html",

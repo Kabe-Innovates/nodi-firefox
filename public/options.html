@@ -10,50 +10,49 @@
     <div class="container">
       <header class="header">
         <h1>Nodi Settings</h1>
+        <p class="subtitle">Manage your extension settings</p>
       </header>
 
       <section class="settings-section">
-        <h2>Zone Configuration</h2>
-
-        <div class="form-group">
-          <label for="radius">Block Radius (meters)</label>
-          <input type="number" id="radius" min="1" max="10000" value="50" />
-          <p class="help-text">Distance from your work zone where blocking is active</p>
+        <h2>Current Configuration</h2>
+        <div id="settings-summary" class="settings-summary">
+          <p style="color: #888;">Loading settings...</p>
         </div>
+        <p class="help-text">
+          Use the popup to configure zones and timer settings. This page is for advanced settings management.
+        </p>
+      </section>
 
+      <section class="settings-section">
+        <h2>Data Management</h2>
+        
         <div class="form-group">
-          <label for="blocklist">Domains to Block</label>
-          <textarea
-            id="blocklist"
-            rows="6"
-            placeholder="youtube.com&#10;facebook.com&#10;instagram.com"
-          ></textarea>
-          <p class="help-text">One domain per line, separated by commas</p>
+          <button id="export-settings" class="btn btn-secondary">Export Settings</button>
+          <p class="help-text">Download your settings as a JSON file for backup</p>
         </div>
-
+        
         <div class="form-group">
-          <label for="monitoring-toggle">
-            <input type="checkbox" id="monitoring-toggle" />
-            <span>Enable Monitoring</span>
-          </label>
-          <p class="help-text">
-            When enabled, sites in the blocklist will be blocked when you're inside the
-            Productive Zone
-          </p>
+          <button id="import-settings" class="btn btn-secondary">Import Settings</button>
+          <input type="file" id="import-file" accept=".json" style="display: none;" />
+          <p class="help-text">Restore settings from a previously exported file</p>
+        </div>
+        
+        <div class="form-group">
+          <button id="reset-settings" class="btn btn-danger">Reset All Settings</button>
+          <p class="help-text">Clear all data and restore default settings</p>
         </div>
       </section>
 
       <section class="actions">
-        <button id="save-options" class="btn btn-primary">Save Settings</button>
         <div id="feedback" class="feedback" aria-live="polite" role="status"></div>
       </section>
 
       <footer class="footer">
-        <p>Nodi v1.0.0</p>
+        <p>Nodi v2.0.0</p>
         <p>Privacy-first extension • No external APIs</p>
       </footer>
     </div>
 
-    <script src="/dist/options.js"></script>
+    <script src="../dist/options.js"></script>
   </body>
 </html>

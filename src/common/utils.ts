@@ -551,7 +551,7 @@ export async function completeTimerSession(): Promise<void> {
       if (timer.notifications) {
         browser.notifications.create({
           type: 'basic',
-          iconUrl: browser.runtime.getURL('icon.png'),
+          iconUrl: browser.runtime.getURL('public/icon-48.png'),
           title: 'Focus Session Complete!',
           message: `Great work! ${nextState === 'long-break' ? 'Long' : 'Short'} break started.`,
           priority: 2
@@ -567,7 +567,7 @@ export async function completeTimerSession(): Promise<void> {
       if (timer.notifications) {
         browser.notifications.create({
           type: 'basic',
-          iconUrl: browser.runtime.getURL('icon.png'),
+          iconUrl: browser.runtime.getURL('public/icon-48.png'),
           title: 'Focus Session Complete!',
           message: 'Time for a break! Click to start.',
           priority: 2
@@ -582,7 +582,7 @@ export async function completeTimerSession(): Promise<void> {
       if (timer.notifications) {
         browser.notifications.create({
           type: 'basic',
-          iconUrl: browser.runtime.getURL('icon.png'),
+          iconUrl: browser.runtime.getURL('public/icon-48.png'),
           title: 'Break Complete!',
           message: 'Focus session started. Time to work!',
           priority: 2
@@ -597,7 +597,7 @@ export async function completeTimerSession(): Promise<void> {
       if (timer.notifications) {
         browser.notifications.create({
           type: 'basic',
-          iconUrl: browser.runtime.getURL('icon.png'),
+          iconUrl: browser.runtime.getURL('public/icon-48.png'),
           title: 'Break Complete!',
           message: 'Ready to start next focus session?',
           priority: 2
