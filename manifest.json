@@ -12,7 +12,7 @@
     "notifications"
   ],
   "host_permissions": [
-    "data:/*"
+    "<all_urls>"
   ],
   "browser_specific_settings": {
     "gecko": {
@@ -28,8 +28,7 @@
     "browser_style": false
   },
   "background": {
-    "scripts": ["dist/background.js"],
-    "type": "classic"
+    "service_worker": "dist/background.js"
   },
   "content_scripts": [
     {
@@ -37,6 +36,12 @@
       "js": ["dist/content.js"],
       "run_at": "document_start",
       "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/popup.js", "dist/options.js"],
+      "matches": ["moz-extension://*/*"]
     }
   ]
 }
