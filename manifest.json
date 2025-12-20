@@ -6,15 +6,16 @@
   "author": "Kabe-Innovates",
   "homepage_url": "https://github.com/Kabe-Innovates/unNamed",
   "permissions": [
-    "geolocation",
     "storage",
     "tabs",
     "notifications",
+    "alarms",
     "<all_urls>"
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "nodi@kabe-innovates.dev"
+      "id": "nodi@kabe-innovates.dev",
+      "strict_min_version": "109.0"
     }
   },
   "icons": {
@@ -34,7 +35,8 @@
     "browser_style": false
   },
   "background": {
-    "scripts": ["dist/background.js"]
+    "scripts": ["dist/background.js"],
+    "persistent": true
   },
   "content_scripts": [
     {

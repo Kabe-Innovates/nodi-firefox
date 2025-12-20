@@ -1,62 +1,55 @@
-import { 
-  getSettings, 
-  domainMatches, 
-  haversine, 
-  logBlockedRequest, 
-  extractDomain, 
-  recordBlockedSite, 
+import {
+  getSettings,
+  domainMatches,
+  haversine,
+  logBlockedRequest,
+  extractDomain,
+  recordBlockedSite,
   isWithinSchedule,
   getTimerState,
-  saveTimerState,
   calculateRemainingTime,
   completeTimerSession,
   shouldBlockByTimer,
   isTimerAllowingAll,
   domainAllowed,
   isMonitoringActive,
-  getMonitoringStatus
+  getMonitoringStatus,
 } from '../common/utils';
-import type { ExtensionSettings, Zone } from '../types/index';
+import type { ExtensionSettings } from '../types/index';
 
 // ============================================
-// TIMER TICK INTERVAL
+// CONSTANTS
 // ============================================
 
-let timerInterval: ReturnType<typeof setInterval> | null = null;
+const TIMER_ALARM_NAME = 'nodi-timer-tick';
+const TIMER_CHECK_INTERVAL_MINUTES = 1 / 60; // 1 second expressed in minutes
 
-/**
- * Start the timer interval that updates every second
- */
-function startTimerInterval() {
-  if (timerInterval) return; // Already running
-  
-  timerInterval = setInterval(async () => {
-    try {
-      const timer = await getTimerState();
-      
-      // Skip if not in an active state
-      if (timer.state === 'idle' || timer.state === 'paused') {
-        return;
-      }
-      
-      // Calculate remaining time
-      const remaining = calculateRemainingTime(timer);
-      
-      // Check if session complete
-      if (remaining <= 0) {
-        console.log('[Nodi] Timer session complete:', timer.state);
-        await completeTimerSession();
-      }
-    } catch (error) {
-      console.error('[Nodi] Timer interval error:', error);
-    }
-  }, 1000); // Every second
-  
-  console.log('[Nodi] Timer interval started');
+// ============================================
+// ALARM-BASED TIMER (Firefox-friendly)
+// ============================================
+
+async function initializeTimerAlarm(): Promise<void> {
+  await browser.alarms.clear(TIMER_ALARM_NAME);
+  browser.alarms.create(TIMER_ALARM_NAME, {
+    periodInMinutes: TIMER_CHECK_INTERVAL_MINUTES,
+  });
+  console.log('[Nodi] Timer alarm initialized');
 }
 
-// Start timer interval when extension loads
-startTimerInterval();
+browser.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== TIMER_ALARM_NAME) return;
+  try {
+    const timer = await getTimerState();
+    if (timer.state === 'idle' || timer.state === 'paused') return;
+    const remaining = calculateRemainingTime(timer);
+    if (remaining <= 0) {
+      console.log('[Nodi] Timer session complete:', timer.state);
+      await completeTimerSession();
+    }
+  } catch (error) {
+    console.error('[Nodi] Timer alarm handler error:', error);
+  }
+});
 
 // ============================================
 // TAB BLOCKING LOGIC
@@ -68,6 +61,11 @@ startTimerInterval();
 browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // Only check when tab starts loading
   if (changeInfo.status !== 'loading' || !tab.url) {
+    return;
+  }
+
+  // Skip internal/extension URLs
+  if (tab.url.startsWith('about:') || tab.url.startsWith('moz-extension:') || tab.url.startsWith('data:') || tab.url.startsWith('chrome:')) {
     return;
   }
 
@@ -236,4 +234,21 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
-console.log('[Nodi] Background service worker initialized');
+// ============================================
+// LIFECYCLE
+// ============================================
+
+browser.runtime.onInstalled.addListener(async (details) => {
+  console.log('[Nodi] Extension installed/updated:', details.reason);
+  await initializeTimerAlarm();
+});
+
+browser.runtime.onStartup.addListener(async () => {
+  console.log('[Nodi] Browser startup');
+  await initializeTimerAlarm();
+});
+
+// Kick off alarms on load
+initializeTimerAlarm()
+  .then(() => console.log('[Nodi] Background initialized'))
+  .catch((err) => console.error('[Nodi] Init failed', err));

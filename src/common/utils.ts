@@ -549,13 +549,16 @@ export async function completeTimerSession(): Promise<void> {
       
       // Show notification
       if (timer.notifications) {
-        browser.notifications.create({
-          type: 'basic',
-          iconUrl: browser.runtime.getURL('public/icon-48.png'),
-          title: 'Focus Session Complete!',
-          message: `Great work! ${nextState === 'long-break' ? 'Long' : 'Short'} break started.`,
-          priority: 2
-        });
+        try {
+          await browser.notifications.create({
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('public/icon-48.png'),
+            title: 'Focus Session Complete!',
+            message: `Great work! ${nextState === 'long-break' ? 'Long' : 'Short'} break started.`,
+          });
+        } catch (err) {
+          console.warn('[Nodi] Notification failed:', err);
+        }
       }
     } else {
       // Just transition to idle, user must manually start break
@@ -565,13 +568,16 @@ export async function completeTimerSession(): Promise<void> {
       });
       
       if (timer.notifications) {
-        browser.notifications.create({
-          type: 'basic',
-          iconUrl: browser.runtime.getURL('public/icon-48.png'),
-          title: 'Focus Session Complete!',
-          message: 'Time for a break! Click to start.',
-          priority: 2
-        });
+        try {
+          await browser.notifications.create({
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('public/icon-48.png'),
+            title: 'Focus Session Complete!',
+            message: 'Time for a break! Click to start.',
+          });
+        } catch (err) {
+          console.warn('[Nodi] Notification failed:', err);
+        }
       }
     }
   } else if (timer.state === 'short-break' || timer.state === 'long-break') {
@@ -580,13 +586,16 @@ export async function completeTimerSession(): Promise<void> {
       await startTimer('focus');
       
       if (timer.notifications) {
-        browser.notifications.create({
-          type: 'basic',
-          iconUrl: browser.runtime.getURL('public/icon-48.png'),
-          title: 'Break Complete!',
-          message: 'Focus session started. Time to work!',
-          priority: 2
-        });
+        try {
+          await browser.notifications.create({
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('public/icon-48.png'),
+            title: 'Break Complete!',
+            message: 'Focus session started. Time to work!',
+          });
+        } catch (err) {
+          console.warn('[Nodi] Notification failed:', err);
+        }
       }
     } else {
       await saveTimerState({
@@ -595,13 +604,16 @@ export async function completeTimerSession(): Promise<void> {
       });
       
       if (timer.notifications) {
-        browser.notifications.create({
-          type: 'basic',
-          iconUrl: browser.runtime.getURL('public/icon-48.png'),
-          title: 'Break Complete!',
-          message: 'Ready to start next focus session?',
-          priority: 2
-        });
+        try {
+          await browser.notifications.create({
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('public/icon-48.png'),
+            title: 'Break Complete!',
+            message: 'Ready to start next focus session?',
+          });
+        } catch (err) {
+          console.warn('[Nodi] Notification failed:', err);
+        }
       }
     }
   }
