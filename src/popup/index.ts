@@ -25,83 +25,143 @@ import type { Zone, PomodoroTimer, TimerState } from '../types/index';
 // DOM ELEMENT REFERENCES
 // ============================================
 
-// Theme toggle element
-const themeToggle = document.getElementById('themeToggle')!;
+// DOM elements - will be initialized after DOM ready
+let themeToggle: HTMLElement;
+let statusDot: HTMLElement;
+let timerStateBadge: HTMLElement;
+let timerTimeDisplay: HTMLElement;
+let timerSessionDisplay: HTMLElement;
+let timerProgressBar: HTMLElement;
+let timerStartBtn: HTMLElement;
+let timerPauseBtn: HTMLElement;
+let timerResumeBtn: HTMLElement;
+let timerResetBtn: HTMLElement;
+let focusDurationInput: HTMLInputElement;
+let shortBreakInput: HTMLInputElement;
+let longBreakInput: HTMLInputElement;
+let longBreakIntervalInput: HTMLInputElement;
+let timerAutoStartBreaksCheckbox: HTMLInputElement;
+let timerAutoStartFocusCheckbox: HTMLInputElement;
+let timerNotificationsCheckbox: HTMLInputElement;
+let timerBlockDuringFocusCheckbox: HTMLInputElement;
+let timerAllowDuringBreakCheckbox: HTMLInputElement;
+let timerBlocklistTextarea: HTMLTextAreaElement;
+let timerAllowlistTextarea: HTMLTextAreaElement;
+let saveTimerConfigBtn: HTMLElement;
+let statusDetail: HTMLElement;
+let statsSection: HTMLElement;
+let statBlockedCount: HTMLElement;
+let statTimerSessions: HTMLElement;
+let statTopSite: HTMLElement;
+let blockedSitesList: HTMLElement;
+let resetStatsBtn: HTMLElement;
+let addZoneBtn: HTMLElement;
+let zonesList: HTMLElement;
+let noZonesMessage: HTMLElement;
+let zoneForm: HTMLElement;
+let zoneFormTitle: HTMLElement;
+let zoneFormId: HTMLInputElement;
+let zoneNameInput: HTMLInputElement;
+let zoneSetCurrentLocationBtn: HTMLElement;
+let zoneLatInput: HTMLInputElement;
+let zoneLonInput: HTMLInputElement;
+let zoneRadiusInput: HTMLInputElement;
+let zoneBlocklistTextarea: HTMLTextAreaElement;
+let zoneAllowlistTextarea: HTMLTextAreaElement;
+let zoneScheduleEnabledCheckbox: HTMLInputElement;
+let zoneScheduleSettings: HTMLElement;
+let zoneStartHourInput: HTMLInputElement;
+let zoneStartMinuteInput: HTMLInputElement;
+let zoneEndHourInput: HTMLInputElement;
+let zoneEndMinuteInput: HTMLInputElement;
+let zoneColorInput: HTMLInputElement;
+let saveZoneBtn: HTMLElement;
+let cancelZoneBtn: HTMLElement;
+let setCurrentPositionBtn: HTMLElement;
+let currentPositionDisplay: HTMLElement;
+let manualLatInput: HTMLInputElement;
+let manualLonInput: HTMLInputElement;
+let setManualPositionBtn: HTMLElement;
+let monitoringEnabledCheckbox: HTMLInputElement;
+let quickMonitoringToggleBtn: HTMLElement;
+let snooze10Btn: HTMLElement;
+let snooze30Btn: HTMLElement;
+let snooze60Btn: HTMLElement;
+let disableTodayBtn: HTMLElement;
+let clearSnoozeBtn: HTMLElement;
+let feedbackElement: HTMLElement;
 
-// Status dot element
-const statusDot = document.getElementById('status-dot')!;
-const timerStateBadge = document.getElementById('timer-state-badge')!;
-const timerTimeDisplay = document.getElementById('timer-time')!;
-const timerSessionDisplay = document.getElementById('timer-session')!;
-const timerProgressBar = document.getElementById('timer-progress-bar') as HTMLElement;
-const timerStartBtn = document.getElementById('timer-start')!;
-const timerPauseBtn = document.getElementById('timer-pause')!;
-const timerResumeBtn = document.getElementById('timer-resume')!;
-const timerResetBtn = document.getElementById('timer-reset')!;
-
-// Timer config elements
-const focusDurationInput = document.getElementById('focus-duration') as HTMLInputElement;
-const shortBreakInput = document.getElementById('short-break') as HTMLInputElement;
-const longBreakInput = document.getElementById('long-break') as HTMLInputElement;
-const longBreakIntervalInput = document.getElementById('long-break-interval') as HTMLInputElement;
-const timerAutoStartBreaksCheckbox = document.getElementById('timer-auto-start-breaks') as HTMLInputElement;
-const timerAutoStartFocusCheckbox = document.getElementById('timer-auto-start-focus') as HTMLInputElement;
-const timerNotificationsCheckbox = document.getElementById('timer-notifications') as HTMLInputElement;
-const timerBlockDuringFocusCheckbox = document.getElementById('timer-block-during-focus') as HTMLInputElement;
-const timerAllowDuringBreakCheckbox = document.getElementById('timer-allow-during-break') as HTMLInputElement;
-const timerBlocklistTextarea = document.getElementById('timer-blocklist') as HTMLTextAreaElement;
-const timerAllowlistTextarea = document.getElementById('timer-allowlist') as HTMLTextAreaElement;
-const saveTimerConfigBtn = document.getElementById('save-timer-config')!;
-
-// Status and stats elements
-const statusDetail = document.getElementById('status-detail')!;
-const statsSection = document.getElementById('stats-section')!;
-const statBlockedCount = document.getElementById('stat-blocked-count')!;
-const statTimerSessions = document.getElementById('stat-timer-sessions')!;
-const statTopSite = document.getElementById('stat-top-site')!;
-const blockedSitesList = document.getElementById('blocked-sites-list')!;
-const resetStatsBtn = document.getElementById('reset-stats')!;
-
-// Zones elements
-const addZoneBtn = document.getElementById('add-zone')!;
-const zonesList = document.getElementById('zones-list')!;
-const noZonesMessage = document.getElementById('no-zones-message')!;
-const zoneForm = document.getElementById('zone-form')!;
-const zoneFormTitle = document.getElementById('zone-form-title')!;
-const zoneFormId = document.getElementById('zone-form-id') as HTMLInputElement;
-const zoneNameInput = document.getElementById('zone-name') as HTMLInputElement;
-const zoneSetCurrentLocationBtn = document.getElementById('zone-set-current-location')!;
-const zoneLatInput = document.getElementById('zone-lat') as HTMLInputElement;
-const zoneLonInput = document.getElementById('zone-lon') as HTMLInputElement;
-const zoneRadiusInput = document.getElementById('zone-radius') as HTMLInputElement;
-const zoneBlocklistTextarea = document.getElementById('zone-blocklist') as HTMLTextAreaElement;
-const zoneAllowlistTextarea = document.getElementById('zone-allowlist') as HTMLTextAreaElement;
-const zoneScheduleEnabledCheckbox = document.getElementById('zone-schedule-enabled') as HTMLInputElement;
-const zoneScheduleSettings = document.getElementById('zone-schedule-settings')!;
-const zoneStartHourInput = document.getElementById('zone-start-hour') as HTMLInputElement;
-const zoneStartMinuteInput = document.getElementById('zone-start-minute') as HTMLInputElement;
-const zoneEndHourInput = document.getElementById('zone-end-hour') as HTMLInputElement;
-const zoneEndMinuteInput = document.getElementById('zone-end-minute') as HTMLInputElement;
-const zoneColorInput = document.getElementById('zone-color') as HTMLInputElement;
-const saveZoneBtn = document.getElementById('save-zone')!;
-const cancelZoneBtn = document.getElementById('cancel-zone')!;
-
-// Current position elements
-const setCurrentPositionBtn = document.getElementById('set-current-position')!;
-const currentPositionDisplay = document.getElementById('current-position-display')!;
-const manualLatInput = document.getElementById('manual-lat') as HTMLInputElement;
-const manualLonInput = document.getElementById('manual-lon') as HTMLInputElement;
-const setManualPositionBtn = document.getElementById('set-manual-position')!;
-const monitoringEnabledCheckbox = document.getElementById('monitoring-enabled') as HTMLInputElement;
-const quickMonitoringToggleBtn = document.getElementById('quick-monitoring-toggle')!;
-const snooze10Btn = document.getElementById('snooze-10')!;
-const snooze30Btn = document.getElementById('snooze-30')!;
-const snooze60Btn = document.getElementById('snooze-60')!;
-const disableTodayBtn = document.getElementById('disable-today')!;
-const clearSnoozeBtn = document.getElementById('clear-snooze')!;
-
-// Feedback element
-const feedbackElement = document.getElementById('feedback')!;
+/**
+ * Initialize all DOM element references
+ */
+function initDOMElements() {
+  themeToggle = document.getElementById('themeToggle')!;
+  statusDot = document.getElementById('status-dot')!;
+  timerStateBadge = document.getElementById('timer-state-badge')!;
+  timerTimeDisplay = document.getElementById('timer-time')!;
+  timerSessionDisplay = document.getElementById('timer-session')!;
+  timerProgressBar = document.getElementById('timer-progress-bar') as HTMLElement;
+  timerStartBtn = document.getElementById('timer-start')!;
+  timerPauseBtn = document.getElementById('timer-pause')!;
+  timerResumeBtn = document.getElementById('timer-resume')!;
+  timerResetBtn = document.getElementById('timer-reset')!;
+  focusDurationInput = document.getElementById('focus-duration') as HTMLInputElement;
+  shortBreakInput = document.getElementById('short-break') as HTMLInputElement;
+  longBreakInput = document.getElementById('long-break') as HTMLInputElement;
+  longBreakIntervalInput = document.getElementById('long-break-interval') as HTMLInputElement;
+  timerAutoStartBreaksCheckbox = document.getElementById('timer-auto-start-breaks') as HTMLInputElement;
+  timerAutoStartFocusCheckbox = document.getElementById('timer-auto-start-focus') as HTMLInputElement;
+  timerNotificationsCheckbox = document.getElementById('timer-notifications') as HTMLInputElement;
+  timerBlockDuringFocusCheckbox = document.getElementById('timer-block-during-focus') as HTMLInputElement;
+  timerAllowDuringBreakCheckbox = document.getElementById('timer-allow-during-break') as HTMLInputElement;
+  timerBlocklistTextarea = document.getElementById('timer-blocklist') as HTMLTextAreaElement;
+  timerAllowlistTextarea = document.getElementById('timer-allowlist') as HTMLTextAreaElement;
+  saveTimerConfigBtn = document.getElementById('save-timer-config')!;
+  statusDetail = document.getElementById('status-detail')!;
+  statsSection = document.getElementById('stats-section')!;
+  statBlockedCount = document.getElementById('stat-blocked-count')!;
+  statTimerSessions = document.getElementById('stat-timer-sessions')!;
+  statTopSite = document.getElementById('stat-top-site')!;
+  blockedSitesList = document.getElementById('blocked-sites-list')!;
+  resetStatsBtn = document.getElementById('reset-stats')!;
+  addZoneBtn = document.getElementById('add-zone')!;
+  zonesList = document.getElementById('zones-list')!;
+  noZonesMessage = document.getElementById('no-zones-message')!;
+  zoneForm = document.getElementById('zone-form')!;
+  zoneFormTitle = document.getElementById('zone-form-title')!;
+  zoneFormId = document.getElementById('zone-form-id') as HTMLInputElement;
+  zoneNameInput = document.getElementById('zone-name') as HTMLInputElement;
+  zoneSetCurrentLocationBtn = document.getElementById('zone-set-current-location')!;
+  zoneLatInput = document.getElementById('zone-lat') as HTMLInputElement;
+  zoneLonInput = document.getElementById('zone-lon') as HTMLInputElement;
+  zoneRadiusInput = document.getElementById('zone-radius') as HTMLInputElement;
+  zoneBlocklistTextarea = document.getElementById('zone-blocklist') as HTMLTextAreaElement;
+  zoneAllowlistTextarea = document.getElementById('zone-allowlist') as HTMLTextAreaElement;
+  zoneScheduleEnabledCheckbox = document.getElementById('zone-schedule-enabled') as HTMLInputElement;
+  zoneScheduleSettings = document.getElementById('zone-schedule-settings')!;
+  zoneStartHourInput = document.getElementById('zone-start-hour') as HTMLInputElement;
+  zoneStartMinuteInput = document.getElementById('zone-start-minute') as HTMLInputElement;
+  zoneEndHourInput = document.getElementById('zone-end-hour') as HTMLInputElement;
+  zoneEndMinuteInput = document.getElementById('zone-end-minute') as HTMLInputElement;
+  zoneColorInput = document.getElementById('zone-color') as HTMLInputElement;
+  saveZoneBtn = document.getElementById('save-zone')!;
+  cancelZoneBtn = document.getElementById('cancel-zone')!;
+  setCurrentPositionBtn = document.getElementById('set-current-position')!;
+  currentPositionDisplay = document.getElementById('current-position-display')!;
+  manualLatInput = document.getElementById('manual-lat') as HTMLInputElement;
+  manualLonInput = document.getElementById('manual-lon') as HTMLInputElement;
+  setManualPositionBtn = document.getElementById('set-manual-position')!;
+  monitoringEnabledCheckbox = document.getElementById('monitoring-enabled') as HTMLInputElement;
+  quickMonitoringToggleBtn = document.getElementById('quick-monitoring-toggle')!;
+  snooze10Btn = document.getElementById('snooze-10')!;
+  snooze30Btn = document.getElementById('snooze-30')!;
+  snooze60Btn = document.getElementById('snooze-60')!;
+  disableTodayBtn = document.getElementById('disable-today')!;
+  clearSnoozeBtn = document.getElementById('clear-snooze')!;
+  feedbackElement = document.getElementById('feedback')!;
+  
+  console.log('[Nodi] DOM elements initialized, themeToggle:', themeToggle);
+}
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -446,6 +506,8 @@ async function updateCurrentPositionDisplay() {
 // ============================================
 
 function attachEventListeners() {
+  console.log('[Nodi] Attaching event listeners, themeToggle exists:', !!themeToggle);
+  
   // Theme toggle
   themeToggle.addEventListener('click', toggleTheme);
 
@@ -723,9 +785,12 @@ clearSnoozeBtn.addEventListener('click', async () => {
 // ============================================
 
 async function init() {
-  console.log('[Nodi] Popup initialized');
+  console.log('[Nodi] Popup init() called');
   
-  // Attach all event listeners first
+  // Initialize DOM element references first
+  initDOMElements();
+  
+  // Attach all event listeners
   attachEventListeners();
   
   await loadTheme();
