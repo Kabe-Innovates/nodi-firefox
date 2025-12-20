@@ -445,8 +445,9 @@ async function updateCurrentPositionDisplay() {
 // EVENT LISTENERS
 // ============================================
 
-// Theme toggle
-themeToggle.addEventListener('click', toggleTheme);
+function attachEventListeners() {
+  // Theme toggle
+  themeToggle.addEventListener('click', toggleTheme);
 
 // Timer controls
 timerStartBtn.addEventListener('click', async () => {
@@ -715,6 +716,7 @@ clearSnoozeBtn.addEventListener('click', async () => {
   await updateStatusDisplay();
   setFeedback('Monitoring resumed', 'success');
 });
+}
 
 // ============================================
 // INITIALIZATION
@@ -722,6 +724,9 @@ clearSnoozeBtn.addEventListener('click', async () => {
 
 async function init() {
   console.log('[Nodi] Popup initialized');
+  
+  // Attach all event listeners first
+  attachEventListeners();
   
   await loadTheme();
   await updateTimerDisplay();
