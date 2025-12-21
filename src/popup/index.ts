@@ -27,7 +27,6 @@ import type { Zone, PomodoroTimer, TimerState } from '../types/index';
 // ============================================
 
 // DOM elements - will be initialized after DOM ready
-let themeToggle: HTMLElement;
 let statusDot: HTMLElement;
 let timerStateBadge: HTMLElement;
 let timerTimeDisplay: HTMLElement;
@@ -96,7 +95,6 @@ let feedbackElement: HTMLElement;
  * Initialize all DOM element references
  */
 function initDOMElements() {
-  themeToggle = document.getElementById('themeToggle')!;
   statusDot = document.getElementById('status-dot')!;
   timerStateBadge = document.getElementById('timer-state-badge')!;
   timerTimeDisplay = document.getElementById('timer-time')!;
@@ -161,7 +159,7 @@ function initDOMElements() {
   clearSnoozeBtn = document.getElementById('clear-snooze')!;
   feedbackElement = document.getElementById('feedback')!;
   
-  console.log('[Nodi] DOM elements initialized, themeToggle:', themeToggle);
+  console.log('[Nodi] DOM elements initialized');
 }
 
 // ============================================
@@ -179,25 +177,26 @@ function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info
 // THEME MANAGEMENT
 // ============================================
 
-async function loadTheme() {
-  const settings = await getSettings();
-  const isDark = settings.theme !== 'light';
-  if (!isDark) {
-    document.body.classList.add('light-theme');
-    themeToggle.textContent = '☀️';
-  } else {
-    document.body.classList.remove('light-theme');
-    themeToggle.textContent = '🌙';
-  }
+function applyThemeWithSetting(themeSetting: 'system' | 'light' | 'dark') {
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const useLight = themeSetting === 'light' || (themeSetting === 'system' && prefersLight);
+  document.body.classList.toggle('light-theme', useLight);
 }
 
-async function toggleTheme() {
+async function loadTheme() {
   const settings = await getSettings();
-  const isDark = settings.theme !== 'light';
-  const newTheme = isDark ? 'light' : 'dark';
-  await saveSettings({ theme: newTheme });
-  await loadTheme();
-  setFeedback(`Switched to ${newTheme} theme`, 'info');
+  const themeSetting = settings.theme ?? 'system';
+  applyThemeWithSetting(themeSetting);
+  if (themeSetting === 'system' && window.matchMedia) {
+    const media = window.matchMedia('(prefers-color-scheme: light)');
+    const handler = () => applyThemeWithSetting('system');
+    try {
+      media.addEventListener('change', handler);
+    } catch {
+      // Fallback for older browsers
+      media.onchange = handler as any;
+    }
+  }
 }
 
 // ============================================
@@ -520,10 +519,7 @@ async function updateCurrentPositionDisplay() {
 // ============================================
 
 function attachEventListeners() {
-  console.log('[Nodi] Attaching event listeners, themeToggle exists:', !!themeToggle);
-  
-  // Theme toggle
-  themeToggle.addEventListener('click', toggleTheme);
+  console.log('[Nodi] Attaching event listeners');
 
 // Timer controls
 timerStartBtn.addEventListener('click', async () => {

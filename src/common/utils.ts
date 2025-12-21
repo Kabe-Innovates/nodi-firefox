@@ -218,6 +218,7 @@ export async function getSettings(): Promise<ExtensionSettings> {
     'pomodoroTimer',
     'snoozeUntil',
     'disabledUntil',
+    'theme',
     // Legacy keys for migration
     'zone',
     'radius',
@@ -243,7 +244,8 @@ export async function getSettings(): Promise<ExtensionSettings> {
     currentPosition: data.currentPosition || null,
     pomodoroTimer: { ...(data.pomodoroTimer || getDefaultTimer()), timerAllowlist: (data.pomodoroTimer && data.pomodoroTimer.timerAllowlist) || [] },
     snoozeUntil: data.snoozeUntil || null,
-    disabledUntil: data.disabledUntil || null
+    disabledUntil: data.disabledUntil || null,
+    theme: (data.theme === 'light' || data.theme === 'dark' || data.theme === 'system') ? data.theme : 'dark'
   };
 }
 

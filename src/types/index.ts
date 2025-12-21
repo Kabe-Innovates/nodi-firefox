@@ -61,7 +61,7 @@ export interface ExtensionSettings {
   pomodoroTimer: PomodoroTimer;
   snoozeUntil?: number | null; // Timestamp when snooze expires
   disabledUntil?: number | null; // Timestamp when disabled state expires
-  theme?: 'light' | 'dark'; // User's theme preference (default: 'dark')
+  theme?: 'system' | 'light' | 'dark'; // User's theme preference (default: 'system')
   
   // Legacy fields for migration (will be removed after migration)
   zone?: GeoLocation | null;

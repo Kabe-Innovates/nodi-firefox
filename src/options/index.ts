@@ -17,6 +17,31 @@ function setFeedback(text: string, type: 'success' | 'error' | 'info' = 'info'):
 }
 
 /**
+ * Theme management
+ */
+function applyThemeWithSetting(themeSetting: 'system' | 'light' | 'dark'): void {
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const useLight = themeSetting === 'light' || (themeSetting === 'system' && prefersLight);
+  document.body.classList.toggle('light-theme', useLight);
+}
+
+async function loadTheme(): Promise<void> {
+  const settings = await getSettings();
+  const themeSetting = settings.theme ?? 'system';
+  applyThemeWithSetting(themeSetting);
+  if (themeSetting === 'system' && window.matchMedia) {
+    const media = window.matchMedia('(prefers-color-scheme: light)');
+    const handler = () => applyThemeWithSetting('system');
+    try {
+      media.addEventListener('change', handler);
+    } catch {
+      // Fallback for older browsers
+      (media as any).onchange = handler as any;
+    }
+  }
+}
+
+/**
  * Load and display current settings
  */
 async function loadOptions(): Promise<void> {
@@ -110,7 +135,10 @@ async function resetSettings(): Promise<void> {
 function init(): void {
   console.log('[Nodi Options] Initialized');
   
-  loadOptions();
+  // Apply theme before rendering to avoid FOUC
+  loadTheme()
+    .then(() => loadOptions())
+    .catch(() => loadOptions());
   
   // Export button
   const exportBtn = document.getElementById('export-settings');
