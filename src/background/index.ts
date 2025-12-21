@@ -22,7 +22,9 @@ import type { ExtensionSettings } from '../types/index';
 // ============================================
 
 const TIMER_ALARM_NAME = 'nodi-timer-tick';
-const TIMER_CHECK_INTERVAL_MINUTES = 1 / 60; // 1 second expressed in minutes
+// Firefox has a minimum alarm interval of 1 minute
+// UI updates happen via setInterval in popup, this is for session completion only
+const TIMER_CHECK_INTERVAL_MINUTES = 1;
 
 // ============================================
 // ALARM-BASED TIMER (Firefox-friendly)
@@ -231,6 +233,35 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     
   } catch (error) {
     console.error('[Nodi] Tab update handler error:', error);
+  }
+});
+
+// ============================================
+// MESSAGE HANDLING
+// ============================================
+
+browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === 'TIMER_STATE_CHANGED') {
+    console.log('[Nodi] Timer state changed notification received');
+    // No action needed - blocking logic re-evaluates on each tab update
+    return;
+  }
+  
+  if (message.type === 'GET_TIMER_STATE') {
+    getTimerState().then(timer => {
+      sendResponse({ timer });
+    });
+    return true; // Indicates async response
+  }
+  
+  if (message.type === 'GET_MONITORING_STATUS') {
+    getSettings().then(settings => {
+      sendResponse({
+        active: isMonitoringActive(settings),
+        status: getMonitoringStatus(settings)
+      });
+    });
+    return true;
   }
 });
 

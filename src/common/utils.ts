@@ -255,10 +255,12 @@ export async function saveSettings(settings: Partial<ExtensionSettings>): Promis
 }
 
 /**
- * Get statistics from storage
+ * Get statistics from storage, auto-reset if new day
  */
 export async function getStatistics(): Promise<Statistics> {
   const data = await browser.storage.local.get('statistics');
+  const now = Date.now();
+  
   if (!data.statistics) {
     return {
       totalBlocked: 0,
@@ -269,13 +271,38 @@ export async function getStatistics(): Promise<Statistics> {
         totalFocusTime: 0,
         blockedDuringFocus: 0
       },
-      sessionStart: Date.now(),
-      lastUpdated: Date.now(),
+      sessionStart: now,
+      lastUpdated: now,
     };
   }
   
+  // Check if we need to reset (new day)
+  const existingStats = data.statistics;
+  if (existingStats.sessionStart) {
+    const lastDate = new Date(existingStats.sessionStart).toDateString();
+    const today = new Date(now).toDateString();
+    
+    if (lastDate !== today) {
+      console.log('[Nodi] New day detected, resetting daily statistics');
+      const freshStats: Statistics = {
+        totalBlocked: 0,
+        blockedSites: [],
+        zoneStats: {},
+        timerStats: {
+          sessionsCompleted: 0,
+          totalFocusTime: 0,
+          blockedDuringFocus: 0
+        },
+        sessionStart: now,
+        lastUpdated: now,
+      };
+      await browser.storage.local.set({ statistics: freshStats });
+      return freshStats;
+    }
+  }
+  
   // Ensure new fields exist for older statistics
-  const stats = data.statistics;
+  const stats = existingStats;
   if (!stats.zoneStats) stats.zoneStats = {};
   if (!stats.timerStats) {
     stats.timerStats = {
@@ -417,6 +444,7 @@ export function getMonitoringStatus(settings: ExtensionSettings): { state: 'acti
 
 /**
  * Calculate remaining time for current timer session
+ * Returns 0 if session should have ended (handles alarm delay/throttling)
  */
 export function calculateRemainingTime(timer: PomodoroTimer): number {
   if (!timer.startedAt || timer.state === 'idle' || timer.state === 'paused') {
@@ -441,11 +469,16 @@ export function calculateRemainingTime(timer: PomodoroTimer): number {
       duration = timer.focusDuration;
   }
   
-  return Math.max(0, duration - elapsed);
+  const remaining = duration - elapsed;
+  
+  // Return 0 for negative values (session overdue due to alarm throttling)
+  // The caller (alarm handler or popup) should trigger completion
+  return Math.max(0, remaining);
 }
 
 /**
  * Start a timer session
+ * Note: Session count is incremented in completeTimerSession() not here
  */
 export async function startTimer(state: TimerState = 'focus'): Promise<void> {
   const timer = await getTimerState();
@@ -471,7 +504,7 @@ export async function startTimer(state: TimerState = 'focus'): Promise<void> {
     pausedAt: null,
     elapsedSeconds: 0,
     remainingSeconds: duration,
-    currentSession: state === 'focus' ? timer.currentSession + 1 : timer.currentSession
+    // Don't increment session here - it's done in completeTimerSession after focus completes
   });
 }
 
@@ -525,11 +558,16 @@ export async function completeTimerSession(): Promise<void> {
   const timer = await getTimerState();
   const stats = await getStatistics();
   
-  // Update statistics based on completed session
+  // Update statistics and session count based on completed session
   if (timer.state === 'focus') {
     stats.timerStats.sessionsCompleted++;
     stats.timerStats.totalFocusTime += timer.focusDuration;
     await browser.storage.local.set({ statistics: stats });
+    
+    // Increment session count AFTER completing focus (not on start)
+    await saveTimerState({
+      currentSession: timer.currentSession + 1
+    });
   }
   
   // Determine next state

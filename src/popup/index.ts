@@ -11,6 +11,7 @@ import {
   resumeTimer,
   resetTimer,
   calculateRemainingTime,
+  completeTimerSession,
   formatTime,
   createZone,
   updateZone,
@@ -286,7 +287,20 @@ async function updateTimerDisplay() {
 
 function startTimerUpdateLoop() {
   if (timerUpdateInterval) return;
+  
+  // Update immediately on start to avoid 1-second lag
+  updateTimerDisplay().catch(err => console.error('[Nodi] Timer display error:', err));
+  
   timerUpdateInterval = setInterval(async () => {
+    const timer = await getTimerState();
+    const remaining = calculateRemainingTime(timer);
+    
+    // Check if timer should complete (handles alarm throttling)
+    if (remaining <= 0 && timer.state !== 'idle' && timer.state !== 'paused') {
+      console.log('[Nodi] Timer completion detected in popup');
+      await completeTimerSession();
+    }
+    
     await updateTimerDisplay();
   }, 1000);
 }
