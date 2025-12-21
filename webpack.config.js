@@ -11,6 +11,7 @@ export default {
     popup: './src/popup/index.ts',
     options: './src/options/index.ts',
     content: './src/content/index.ts',
+    blocked: './src/blocked/index.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

@@ -77,15 +77,9 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     
     console.log('[Nodi] Tab update - monitoring:', settings.monitoring, 'zones:', settings.zones.length, 'timer:', timer.state, 'url:', tab.url);
 
-    // Early exit if not monitoring or snoozed/disabled
-    const monitoringStatus = getMonitoringStatus(settings);
-    if (!isMonitoringActive(settings)) {
-      console.log('[Nodi] Monitoring inactive:', monitoringStatus.state, 'until', monitoringStatus.expiresAt);
-      return;
-    }
-
     // ==========================================
     // TIMER-BASED BLOCKING (Priority 1)
+    // Independent of zone monitoring state
     // ==========================================
     
     // Check if timer is allowing all sites (during break)
@@ -93,6 +87,7 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       console.log('[Nodi] Timer in break mode - allowing all sites');
       return;
     }
+    
     // Timer allowlist short-circuit
     if (domainAllowed(tab.url, timer.timerAllowlist || [])) {
       console.log('[Nodi] Allowed by timer allowlist');
@@ -108,43 +103,31 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       await recordBlockedSite(domain, undefined, true); // fromTimer = true
       
       const remaining = calculateRemainingTime(timer);
-      const minutes = Math.floor(remaining / 60);
-      const seconds = remaining % 60;
       
-      const blockedHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Blocked by Nodi</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; margin: 0; padding: 20px; background: #0f1419; color: #e6e8eb; }
-            .container { max-width: 600px; margin: 50px auto; text-align: center; }
-            h1 { color: #ef4444; margin: 0 0 10px; }
-            .timer { font-size: 48px; font-weight: bold; color: #5b9ff5; margin: 20px 0; }
-            p { margin: 10px 0; color: #a4a7ae; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>🍅 Blocked by Focus Timer</h1>
-            <div class="timer">${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</div>
-            <p>This site is blocked during your focus session.</p>
-            <p><small>Session ${timer.currentSession} • Stay focused!</small></p>
-          </div>
-        </body>
-        </html>
-      `;
+      // Use extension blocked page with URL parameters
+      const blockedPageUrl = browser.runtime.getURL('public/blocked.html') + 
+        `?reason=timer&domain=${encodeURIComponent(domain)}&remaining=${remaining}&session=${timer.currentSession}`;
       
-      browser.tabs.update(tabId, {
-        url: 'data:text/html;charset=utf-8,' + encodeURIComponent(blockedHtml)
-      });
+      try {
+        await browser.tabs.update(tabId, { url: blockedPageUrl });
+      } catch (error) {
+        console.error('[Nodi] Failed to show blocked page:', error);
+      }
       
-      return; // Don't check zones
+      return; // Timer blocked - don't check zones
     }
 
     // ==========================================
     // ZONE-BASED BLOCKING (Priority 2)
+    // Requires monitoring to be active
     // ==========================================
+    
+    // Check monitoring status - only affects zone blocking
+    const monitoringStatus = getMonitoringStatus(settings);
+    if (!isMonitoringActive(settings)) {
+      console.log('[Nodi] Monitoring inactive:', monitoringStatus.state, 'until', monitoringStatus.expiresAt, '- skipping zone blocking');
+      return;
+    }
     
     // Check if current position is set
     if (!settings.currentPosition) {
@@ -199,33 +182,15 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         await recordBlockedSite(domain, zone.id, false); // zoneId, not fromTimer
         console.log('[Nodi] Recorded blocked site:', domain, 'for zone:', zone.name);
         
-        const blockedHtml = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Blocked by Nodi</title>
-            <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; margin: 0; padding: 20px; background: #0f1419; color: #e6e8eb; }
-              .container { max-width: 600px; margin: 50px auto; text-align: center; }
-              h1 { color: #ef4444; margin: 0 0 10px; }
-              .zone-badge { display: inline-block; padding: 6px 12px; background: ${zone.color || '#5b9ff5'}; border-radius: 6px; margin: 10px 0; }
-              p { margin: 10px 0; color: #a4a7ae; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h1>🛑 Blocked by Nodi</h1>
-              <div class="zone-badge">${zone.name}</div>
-              <p>This site is blocked while you're in your productivity zone.</p>
-              <p><small>Distance: ${distance.toFixed(0)}m | Radius: ${zone.radius}m</small></p>
-            </div>
-          </body>
-          </html>
-        `;
+        // Use extension blocked page with URL parameters
+        const blockedPageUrl = browser.runtime.getURL('public/blocked.html') + 
+          `?reason=zone&zone=${encodeURIComponent(zone.name)}&color=${encodeURIComponent(zone.color || '#5b9ff5')}&domain=${encodeURIComponent(domain)}&distance=${distance.toFixed(0)}&radius=${zone.radius}`;
         
-        browser.tabs.update(tabId, {
-          url: 'data:text/html;charset=utf-8,' + encodeURIComponent(blockedHtml)
-        });
+        try {
+          await browser.tabs.update(tabId, { url: blockedPageUrl });
+        } catch (error) {
+          console.error('[Nodi] Failed to show blocked page:', error);
+        }
         
         return; // Stop checking other zones
       }

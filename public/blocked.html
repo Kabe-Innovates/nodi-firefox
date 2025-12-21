@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus !</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=BBH+Hegarty&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'BBH Hegarty', sans-serif;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100%;
+    }
+    
+    .focus {
+      font-size: clamp(64px, 20vw, 200px);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      background: linear-gradient(90deg, #888, #fff, #888);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="focus">FOCUS!</div>
+  <script src="../dist/blocked.js"></script>
+</body>
+</html>
