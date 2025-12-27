@@ -70,7 +70,8 @@ body {
 }
 
 .container {
-  width: 420px;
+  width: 100%;
+  max-width: 420px;
   padding: var(--spacing-xl);
   display: flex;
   flex-direction: column;
@@ -89,14 +90,14 @@ body {
 }
 
 .header h1 {
-  font-size: 28px;
+  font-size: clamp(22px, 6vw, 28px);
   font-weight: 900;
   letter-spacing: -0.5px;
   margin-bottom: var(--spacing-sm);
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: clamp(12px, 3.2vw, 13px);
   color: var(--text-secondary);
   font-weight: 300;
   letter-spacing: 0.3px;
@@ -552,7 +553,7 @@ textarea {
 }
 
 .timer-time {
-  font-size: 56px;
+  font-size: clamp(36px, 12vw, 56px);
   font-weight: 900;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -795,4 +796,32 @@ input[type="color"]::-webkit-color-swatch {
 
 .container::-webkit-scrollbar-thumb:hover {
   background: var(--border-color);
+}
+
+/* ============================================
+   RESPONSIVE LAYOUT TWEAKS
+   ============================================ */
+
+@media (max-width: 440px) {
+  .container {
+    padding: var(--spacing-lg);
+    gap: var(--spacing-lg);
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .quick-actions-row {
+    grid-template-columns: 1fr;
+  }
+  .timer-header h2,
+  .zones-header h2,
+  .settings-section h2 {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 520px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

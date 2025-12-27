@@ -185,10 +185,10 @@ function applyThemeWithSetting(themeSetting: 'system' | 'light' | 'dark') {
 
 async function loadTheme() {
   const settings = await getSettings();
-  const themeSetting = settings.theme ?? 'system';
+  const themeSetting = settings.theme ?? 'dark';
   applyThemeWithSetting(themeSetting);
   if (themeSetting === 'system' && window.matchMedia) {
-    const media = window.matchMedia('(prefers-color-scheme: light)');
+    const media = window.matchMedia('(prefers-color-scheme: light)');;
     const handler = () => applyThemeWithSetting('system');
     try {
       media.addEventListener('change', handler);
@@ -198,6 +198,14 @@ async function loadTheme() {
     }
   }
 }
+
+// Listen for theme changes from options page
+browser.runtime.onMessage.addListener((message) => {
+  if (message.type === 'THEME_CHANGED') {
+    console.log('[Nodi Popup] Received theme change:', message.theme);
+    applyThemeWithSetting(message.theme);
+  }
+});
 
 // ============================================
 // STATUS DISPLAY

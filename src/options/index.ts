@@ -61,6 +61,9 @@ async function loadOptions(): Promise<void> {
         <div class="settings-item">
           <strong>Timer State:</strong> ${settings.pomodoroTimer.state}
         </div>
+        <div class="settings-item">
+          <strong>Theme:</strong> ${settings.theme || 'dark'}
+        </div>
       `;
     }
     
@@ -114,6 +117,46 @@ async function importSettings(file: File): Promise<void> {
 }
 
 /**
+ * Load theme selection
+ */
+async function loadThemeSelection(): Promise<void> {
+  const settings = await getSettings();
+  const theme = settings.theme || 'dark';
+  
+  const darkRadio = document.getElementById('theme-dark') as HTMLInputElement;
+  const lightRadio = document.getElementById('theme-light') as HTMLInputElement;
+  const systemRadio = document.getElementById('theme-system') as HTMLInputElement;
+  
+  if (darkRadio) darkRadio.checked = theme === 'dark';
+  if (lightRadio) lightRadio.checked = theme === 'light';
+  if (systemRadio) systemRadio.checked = theme === 'system';
+}
+
+/**
+ * Handle theme change
+ */
+async function handleThemeChange(theme: 'dark' | 'light' | 'system'): Promise<void> {
+  await saveSettings({ theme });
+  applyThemeWithSetting(theme);
+  setFeedback('Theme updated!', 'success');
+  
+  // Broadcast theme change to all extension pages (popup, etc.)
+  try {
+    await browser.runtime.sendMessage({
+      type: 'THEME_CHANGED',
+      theme
+    });
+    console.log('[Nodi Options] Theme change broadcast:', theme);
+  } catch (error) {
+    // Ignore errors if no listeners (popup may be closed)
+    console.log('[Nodi Options] No listeners for theme change');
+  }
+  
+  // Update summary
+  await loadOptions();
+}
+
+/**
  * Reset all settings to default
  */
 async function resetSettings(): Promise<void> {
@@ -164,6 +207,18 @@ function init(): void {
   if (resetBtn) {
     resetBtn.addEventListener('click', resetSettings);
   }
+  
+  // Theme selectors
+  const themeRadios = document.querySelectorAll('input[name="theme"]');
+  themeRadios.forEach(radio => {
+    radio.addEventListener('change', async (e) => {
+      const target = e.target as HTMLInputElement;
+      await handleThemeChange(target.value as 'dark' | 'light' | 'system');
+    });
+  });
+  
+  // Load theme selection
+  loadThemeSelection();
 }
 
 if (document.readyState === 'loading') {
