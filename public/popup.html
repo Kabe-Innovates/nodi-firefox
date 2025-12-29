@@ -10,7 +10,6 @@
     <div class="container">
       <header class="header">
         <h1>Nodi</h1>
-        <p class="subtitle">Stay focused, stay productive</p>
       </header>
 
       <!-- Timer Section -->
@@ -37,21 +36,23 @@
         
         <details class="timer-config">
           <summary>Timer Settings</summary>
-          <div class="form-group">
-            <label>Focus Duration (minutes)</label>
-            <input type="number" id="focus-duration" min="1" max="60" value="25" />
-          </div>
-          <div class="form-group">
-            <label>Short Break (minutes)</label>
-            <input type="number" id="short-break" min="1" max="30" value="5" />
-          </div>
-          <div class="form-group">
-            <label>Long Break (minutes)</label>
-            <input type="number" id="long-break" min="1" max="60" value="15" />
-          </div>
-          <div class="form-group">
-            <label>Long Break After (sessions)</label>
-            <input type="number" id="long-break-interval" min="1" max="10" value="4" />
+          <div class="timer-grid">
+            <div class="form-group">
+              <label>Focus Duration (min)</label>
+              <input type="number" id="focus-duration" min="1" max="60" value="25" />
+            </div>
+            <div class="form-group">
+              <label>Short Break (min)</label>
+              <input type="number" id="short-break" min="1" max="30" value="5" />
+            </div>
+            <div class="form-group">
+              <label>Long Break (min)</label>
+              <input type="number" id="long-break" min="1" max="60" value="15" />
+            </div>
+            <div class="form-group">
+              <label>Sessions Before Long</label>
+              <input type="number" id="long-break-interval" min="1" max="10" value="4" />
+            </div>
           </div>
           <div class="form-group">
             <label style="display: flex; align-items: center; gap: 8px;">
