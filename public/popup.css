@@ -421,7 +421,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   background: transparent;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
@@ -754,6 +754,49 @@ textarea {
   margin-bottom: var(--spacing-md);
   color: var(--text-primary);
   font-weight: 700;
+}
+
+.zone-time-inputs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.zone-time-inputs input[type='number'] {
+  width: 50px;
+  padding: var(--spacing-sm) var(--spacing-xs);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: all 150ms ease-in-out;
+}
+
+.zone-time-inputs input[type='number']:focus {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.zone-time-inputs span {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  min-width: 12px;
+  text-align: center;
+}
+
+@media (max-width: 380px) {
+  .zone-time-inputs {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .zone-time-inputs input[type='number'] {
+    width: 100%;
+  }
 }
 
 /* Small button variant */

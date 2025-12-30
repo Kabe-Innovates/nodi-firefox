@@ -216,14 +216,14 @@
           <div id="zone-schedule-settings" style="display: none;">
             <div class="form-group">
               <label>Work Hours</label>
-              <div style="display: flex; gap: 8px; align-items: center; font-size: 13px;">
-                <input type="number" id="zone-start-hour" min="0" max="23" value="9" style="width: 60px;" />
-                <span style="color: #888;">:</span>
-                <input type="number" id="zone-start-minute" min="0" max="59" value="0" style="width: 60px;" />
-                <span style="color: #888;">to</span>
-                <input type="number" id="zone-end-hour" min="0" max="23" value="17" style="width: 60px;" />
-                <span style="color: #888;">:</span>
-                <input type="number" id="zone-end-minute" min="0" max="59" value="0" style="width: 60px;" />
+              <div class="zone-time-inputs">
+                <input type="number" id="zone-start-hour" min="0" max="23" value="9" />
+                <span>:</span>
+                <input type="number" id="zone-start-minute" min="0" max="59" value="0" />
+                <span>to</span>
+                <input type="number" id="zone-end-hour" min="0" max="23" value="17" />
+                <span>:</span>
+                <input type="number" id="zone-end-minute" min="0" max="59" value="0" />
               </div>
             </div>
             
@@ -264,7 +264,7 @@
           
           <div class="form-group">
             <label for="zone-color">Zone Color</label>
-            <input type="color" id="zone-color" value="#5b9ff5" style="width: 100%; height: 40px; cursor: pointer;" />
+            <input type="color" id="zone-color" value="#5b9ff5" style="width: 100%; height: 32px; cursor: pointer;" />
           </div>
           
           <div style="display: flex; gap: 8px;">
