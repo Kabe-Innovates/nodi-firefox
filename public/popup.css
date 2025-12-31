@@ -181,17 +181,15 @@ body {
 
 .quick-actions {
   margin-top: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-sm);
   padding-top: var(--spacing-md);
   border-top: 1px solid var(--border-color);
 }
 
-.quick-actions-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-sm);
+.quick-actions button {
+  width: 100%;
 }
 
 .stats-section {
@@ -613,11 +611,7 @@ textarea {
   margin-bottom: 0;
 }
 
-@media (max-width: 440px) {
-  .timer-grid {
-    grid-template-columns: 1fr;
-  }
-}
+
 
 .timer-config summary:hover {
   background: var(--bg-tertiary);
@@ -861,9 +855,6 @@ input[type="color"]::-webkit-color-swatch {
     gap: var(--spacing-lg);
   }
   .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .quick-actions-row {
     grid-template-columns: 1fr;
   }
   .timer-header h2,
