@@ -16,7 +16,93 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'BBH Hegarty', sans-serif;
+  font-family: 'BBH Sans Hegarty', 'Montserrat', sans-serif;
+}
+
+/* ============================================
+   A11y + small utilities
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.mt-sm {
+  margin-top: var(--spacing-sm);
+}
+
+.muted-text {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.empty-state {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+.blocked-sites-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.color-input {
+  width: 100%;
+  height: 32px;
+  cursor: pointer;
+}
+
+/* Feedback message uses class-based variants (set from TS) */
+.feedback {
+  margin-top: var(--spacing-sm);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.feedback.is-visible {
+  opacity: 1;
+}
+
+.feedback.feedback--success {
+  border-color: rgba(74, 222, 128, 0.35);
+  color: var(--text-primary);
+}
+
+.feedback.feedback--error {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--text-primary);
+}
+
+.feedback.feedback--info {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--text-primary);
 }
 
 :root {
@@ -190,6 +276,25 @@ body {
 
 .quick-actions button {
   width: 100%;
+}
+
+/* More forgiving hit targets in popup */
+.btn {
+  min-height: 34px;
+}
+
+.btn-sm {
+  min-height: 32px;
+}
+
+/* Improve checkbox hit target without changing layout */
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+summary {
+  border-radius: var(--radius-sm);
 }
 
 .stats-section {
