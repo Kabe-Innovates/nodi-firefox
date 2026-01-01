@@ -168,9 +168,16 @@ function initDOMElements() {
 
 function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info') {
   feedbackElement.textContent = message;
-  feedbackElement.style.color = type === 'success' ? '#4ade80' : type === 'error' ? '#ef4444' : '#5b9ff5';
-  feedbackElement.style.opacity = '1';
-  setTimeout(() => { feedbackElement.style.opacity = '0'; }, 3000);
+
+  feedbackElement.classList.remove('feedback--success', 'feedback--error', 'feedback--info');
+  feedbackElement.classList.add(
+    type === 'success' ? 'feedback--success' : type === 'error' ? 'feedback--error' : 'feedback--info'
+  );
+  feedbackElement.classList.add('is-visible');
+
+  setTimeout(() => {
+    feedbackElement.classList.remove('is-visible');
+  }, 3000);
 }
 
 // ============================================

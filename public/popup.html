@@ -38,48 +38,48 @@
           <summary>Timer Settings</summary>
           <div class="timer-grid">
             <div class="form-group">
-              <label>Focus Duration (min)</label>
+              <label for="focus-duration">Focus Duration (min)</label>
               <input type="number" id="focus-duration" min="1" max="60" value="25" />
             </div>
             <div class="form-group">
-              <label>Short Break (min)</label>
+              <label for="short-break">Short Break (min)</label>
               <input type="number" id="short-break" min="1" max="30" value="5" />
             </div>
             <div class="form-group">
-              <label>Long Break (min)</label>
+              <label for="long-break">Long Break (min)</label>
               <input type="number" id="long-break" min="1" max="60" value="15" />
             </div>
             <div class="form-group">
-              <label>Sessions Before Long</label>
+              <label for="long-break-interval">Sessions Before Long</label>
               <input type="number" id="long-break-interval" min="1" max="10" value="4" />
             </div>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px;">
+            <label class="checkbox-row">
               <input type="checkbox" id="timer-auto-start-breaks" />
               <span>Auto-start breaks</span>
             </label>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px;">
+            <label class="checkbox-row">
               <input type="checkbox" id="timer-auto-start-focus" />
               <span>Auto-start focus after break</span>
             </label>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px;">
+            <label class="checkbox-row">
               <input type="checkbox" id="timer-notifications" checked />
               <span>Enable notifications</span>
             </label>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px;">
+            <label class="checkbox-row">
               <input type="checkbox" id="timer-block-during-focus" checked />
               <span>Block sites during focus</span>
             </label>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px;">
+            <label class="checkbox-row">
               <input type="checkbox" id="timer-allow-during-break" checked />
               <span>Allow sites during break</span>
             </label>
@@ -100,7 +100,7 @@
               placeholder="work.zoom.us, docs.company.com"
             ></textarea>
           </div>
-          <button id="save-timer-config" class="btn btn-primary" style="width: 100%;">Save Timer Settings</button>
+          <button id="save-timer-config" class="btn btn-primary full-width">Save Timer Settings</button>
         </details>
       </section>
 
@@ -140,11 +140,11 @@
         </div>
         <div class="blocked-sites">
           <h3>Most Blocked Sites</h3>
-          <div id="blocked-sites-list" style="max-height: 120px; overflow-y: auto;">
-            <p style="color: #888; font-size: 12px;">No sites blocked yet</p>
+          <div id="blocked-sites-list" class="blocked-sites-list">
+            <p class="muted-text">No sites blocked yet</p>
           </div>
         </div>
-        <button id="reset-stats" class="btn btn-tertiary" style="width: 100%; margin-top: 10px;">Reset Statistics</button>
+        <button id="reset-stats" class="btn btn-tertiary full-width mt-sm">Reset Statistics</button>
       </section>
 
       <!-- Zones Section -->
@@ -156,7 +156,7 @@
         
         <div id="zones-list" class="zones-list">
           <!-- Zone cards will be dynamically added here -->
-          <p id="no-zones-message" style="color: #888; font-size: 13px; text-align: center; padding: 20px;">
+          <p id="no-zones-message" class="empty-state">
             No zones configured. Click "Add Zone" to create your first productivity zone.
           </p>
         </div>
@@ -176,9 +176,9 @@
             <button id="zone-set-current-location" class="btn btn-secondary">
               Use Current Location
             </button>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-              <input type="number" id="zone-lat" placeholder="Latitude" step="0.0001" style="flex: 1;" />
-              <input type="number" id="zone-lon" placeholder="Longitude" step="0.0001" style="flex: 1;" />
+            <div class="row mt-sm">
+              <input type="number" id="zone-lat" class="grow" placeholder="Latitude" step="0.0001" />
+              <input type="number" id="zone-lon" class="grow" placeholder="Longitude" step="0.0001" />
             </div>
           </div>
           
@@ -205,7 +205,7 @@
           </div>
           
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <label class="checkbox-row">
               <input type="checkbox" id="zone-schedule-enabled" />
               <span>Enable Time Schedule</span>
             </label>
@@ -262,12 +262,12 @@
           
           <div class="form-group">
             <label for="zone-color">Zone Color</label>
-            <input type="color" id="zone-color" value="#5b9ff5" style="width: 100%; height: 32px; cursor: pointer;" />
+            <input type="color" id="zone-color" class="color-input" value="#5b9ff5" />
           </div>
           
-          <div style="display: flex; gap: 8px;">
-            <button id="save-zone" class="btn btn-primary" style="flex: 1;">Save Zone</button>
-            <button id="cancel-zone" class="btn btn-tertiary" style="flex: 1;">Cancel</button>
+          <div class="row">
+            <button id="save-zone" class="btn btn-primary grow">Save Zone</button>
+            <button id="cancel-zone" class="btn btn-tertiary grow">Cancel</button>
           </div>
         </div>
       </section>
@@ -279,22 +279,22 @@
           <button id="set-current-position" class="btn btn-secondary">
             Update Current Position
           </button>
-          <p id="current-position-display" style="font-size: 12px; color: #888; margin-top: 8px;">
+          <p id="current-position-display" class="muted-text mt-sm">
             Not set
           </p>
         </div>
         <div class="form-group">
           <label>Manual Position (Latitude, Longitude)</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="number" id="manual-lat" placeholder="Latitude" step="0.0001" style="flex: 1;" />
-            <input type="number" id="manual-lon" placeholder="Longitude" step="0.0001" style="flex: 1;" />
+          <div class="row">
+            <input type="number" id="manual-lat" class="grow" placeholder="Latitude" step="0.0001" />
+            <input type="number" id="manual-lon" class="grow" placeholder="Longitude" step="0.0001" />
           </div>
-          <button id="set-manual-position" class="btn btn-secondary" style="width: 100%; margin-top: 8px;">
+          <button id="set-manual-position" class="btn btn-secondary full-width mt-sm">
             Set Manual Position
           </button>
         </div>
         <div class="form-group">
-          <label style="display: flex; align-items: center; gap: 8px;">
+          <label class="checkbox-row">
             <input type="checkbox" id="monitoring-enabled" checked />
             <span>Enable Monitoring</span>
           </label>
