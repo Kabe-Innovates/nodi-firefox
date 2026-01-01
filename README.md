@@ -77,7 +77,6 @@ dist/               # Compiled output (generated)
 ## Browser Support
 
 - Firefox 109+
-- Zen Browser (Firefox-based)
 
 ## License
 
