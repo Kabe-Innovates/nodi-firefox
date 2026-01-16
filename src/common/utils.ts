@@ -44,6 +44,29 @@ export function haversine(
 }
 
 /**
+ * Validate geographic coordinates
+ * @param lat Latitude value
+ * @param lon Longitude value
+ * @returns { valid: boolean, error?: string }
+ */
+export function validateCoordinates(lat: number, lon: number): { valid: boolean; error?: string } {
+  if (isNaN(lat) || isNaN(lon)) {
+    return { valid: false, error: 'Please enter valid numeric coordinates' };
+  }
+  if (lat < -90 || lat > 90) {
+    return { valid: false, error: 'Latitude must be between -90 and 90 degrees' };
+  }
+  if (lon < -180 || lon > 180) {
+    return { valid: false, error: 'Longitude must be between -180 and 180 degrees' };
+  }
+  // Warn about suspicious coordinates (e.g., (0,0) or offshore)
+  if (lat === 0 && lon === 0) {
+    return { valid: true, error: 'Warning: (0°, 0°) is in the ocean. Please verify coordinates.' };
+  }
+  return { valid: true };
+}
+
+/**
  * Parse domain string into an array of domains
  */
 export function parseBlocklist(text: string): string[] {

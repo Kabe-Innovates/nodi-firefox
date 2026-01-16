@@ -18,7 +18,8 @@ import {
   deleteZone,
   toggleZone,
   getMonitoringStatus,
-  isMonitoringActive
+  isMonitoringActive,
+  validateCoordinates
 } from '../common/utils';
 import type { Zone, PomodoroTimer, TimerState } from '../types/index';
 
@@ -166,7 +167,7 @@ function initDOMElements() {
 // UTILITY FUNCTIONS
 // ============================================
 
-function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info') {
+function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info', duration: number = 3000) {
   feedbackElement.textContent = message;
 
   feedbackElement.classList.remove('feedback--success', 'feedback--error', 'feedback--info');
@@ -177,7 +178,7 @@ function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info
 
   setTimeout(() => {
     feedbackElement.classList.remove('is-visible');
-  }, 3000);
+  }, duration);
 }
 
 // ============================================
@@ -621,16 +622,51 @@ zoneScheduleEnabledCheckbox.addEventListener('change', () => {
 
 // Zone set current location
 zoneSetCurrentLocationBtn.addEventListener('click', () => {
+  zoneSetCurrentLocationBtn.textContent = 'Getting location...';
+  zoneSetCurrentLocationBtn.setAttribute('disabled', 'true');
+  
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      zoneLatInput.value = String(pos.coords.latitude);
-      zoneLonInput.value = String(pos.coords.longitude);
-      setFeedback('Location captured!', 'success');
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const validation = validateCoordinates(lat, lon);
+      
+      zoneLatInput.value = String(lat);
+      zoneLonInput.value = String(lon);
+      
+      if (validation.error && !validation.valid) {
+        setFeedback(validation.error, 'error', 4000);
+      } else if (validation.error) {
+        setFeedback(validation.error, 'info', 5000);
+      } else {
+        setFeedback(`Location captured! (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`, 'success');
+      }
+      
+      console.log(`[Nodi] Zone location captured: lat=${lat}, lon=${lon}, accuracy=${pos.coords.accuracy}m`);
+      zoneSetCurrentLocationBtn.textContent = '📍 Set Current Location';
+      zoneSetCurrentLocationBtn.removeAttribute('disabled');
     },
     (err) => {
-      console.error('Geolocation error:', err);
-      setFeedback('Failed to get location', 'error');
-    }
+      console.error('[Nodi] Geolocation error in zone:', err.code, err.message);
+      let errorMsg = 'Failed to get location';
+      
+      switch (err.code) {
+        case 1: // PERMISSION_DENIED
+          errorMsg = 'Location permission denied. Grant permission in browser settings to use GPS.';
+          break;
+        case 2: // POSITION_UNAVAILABLE
+          errorMsg = 'Location service unavailable. Please enable location services and try again.';
+          break;
+        case 3: // TIMEOUT
+          errorMsg = 'Location request timed out. Please check your connection and try again.';
+          break;
+      }
+      
+      setFeedback(errorMsg, 'error', 4000);
+      zoneSetCurrentLocationBtn.textContent = '📍 Set Current Location';
+      zoneSetCurrentLocationBtn.removeAttribute('disabled');
+    },
+    { timeout: 10000, enableHighAccuracy: false }
   );
 });
 
@@ -648,14 +684,23 @@ saveZoneBtn.addEventListener('click', async () => {
     setFeedback('Please enter a zone name', 'error');
     return;
   }
-  if (isNaN(lat) || isNaN(lon)) {
-    setFeedback('Please enter valid coordinates', 'error');
+  
+  // Validate zone coordinates
+  const coordValidation = validateCoordinates(lat, lon);
+  if (!coordValidation.valid) {
+    setFeedback(coordValidation.error!, 'error');
     return;
   }
+  
   if (isNaN(radius) || radius <= 0) {
     setFeedback('Please enter a valid radius', 'error');
     return;
   }
+  
+  if (radius < 5) {
+    setFeedback('⚠️ Radius too small. GPS accuracy (±5-10m) may not support this.', 'info', 4000);
+  }
+  
   if (blocklist.length === 0) {
     setFeedback('Please add at least one domain to block', 'error');
     return;
@@ -691,6 +736,7 @@ saveZoneBtn.addEventListener('click', async () => {
       timeSchedule,
       color
     });
+    console.log(`[Nodi] Zone updated: ${name} at (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) with radius ${radius}m`);
     setFeedback('Zone updated!', 'success');
   } else {
     await createZone({
@@ -703,6 +749,7 @@ saveZoneBtn.addEventListener('click', async () => {
       enabled: true,
       color
     });
+    console.log(`[Nodi] Zone created: ${name} at (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) with radius ${radius}m`);
     setFeedback('Zone created!', 'success');
   }
   
@@ -717,23 +764,60 @@ setCurrentPositionBtn.addEventListener('click', () => {
   
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const accuracy = pos.coords.accuracy;
+      
+      const validation = validateCoordinates(lat, lon);
+      if (!validation.valid) {
+        setFeedback(validation.error!, 'error', 4000);
+        console.error(`[Nodi] Invalid coordinates: ${validation.error}`);
+        setCurrentPositionBtn.textContent = '📍 Update Current Position';
+        setCurrentPositionBtn.removeAttribute('disabled');
+        return;
+      }
+      
       await saveSettings({
-        currentPosition: {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude
-        }
+        currentPosition: { lat, lon }
       });
       await updateCurrentPositionDisplay();
-      setFeedback('Position updated!', 'success');
+      
+      let message = `Position updated! (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+      let feedbackType: 'success' | 'info' = 'success';
+      
+      if (accuracy > 100) {
+        message += ` ⚠️ Accuracy: ${Math.round(accuracy)}m (GPS may be unreliable)`;
+        feedbackType = 'info';
+      } else if (accuracy > 50) {
+        message += ` • Accuracy: ±${Math.round(accuracy)}m`;
+      }
+      
+      setFeedback(message, feedbackType, 4000);
+      console.log(`[Nodi] Current position updated: lat=${lat}, lon=${lon}, accuracy=${accuracy}m`);
       setCurrentPositionBtn.textContent = '📍 Update Current Position';
       setCurrentPositionBtn.removeAttribute('disabled');
     },
     (err) => {
-      console.error('Geolocation error:', err);
-      setFeedback('Failed to get position', 'error');
+      console.error(`[Nodi] Geolocation error: code=${err.code}, message=${err.message}`);
+      let errorMsg = 'Failed to get location';
+      
+      switch (err.code) {
+        case 1: // PERMISSION_DENIED
+          errorMsg = 'Location permission denied. Grant permission in browser settings to use GPS.';
+          break;
+        case 2: // POSITION_UNAVAILABLE
+          errorMsg = 'Location service unavailable. Enable location services and try again.';
+          break;
+        case 3: // TIMEOUT
+          errorMsg = 'Location request timed out. Check connection and try again.';
+          break;
+      }
+      
+      setFeedback(errorMsg, 'error', 4000);
       setCurrentPositionBtn.textContent = '📍 Update Current Position';
       setCurrentPositionBtn.removeAttribute('disabled');
-    }
+    },
+    { timeout: 10000, enableHighAccuracy: false }
   );
 });
 
@@ -742,14 +826,14 @@ setManualPositionBtn.addEventListener('click', async () => {
   const lat = parseFloat(manualLatInput.value);
   const lon = parseFloat(manualLonInput.value);
   
-  if (isNaN(lat) || isNaN(lon)) {
-    setFeedback('Please enter valid coordinates', 'error');
+  const validation = validateCoordinates(lat, lon);
+  if (!validation.valid) {
+    setFeedback(validation.error!, 'error');
     return;
   }
   
-  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-    setFeedback('Coordinates out of range', 'error');
-    return;
+  if (validation.error) {
+    setFeedback(validation.error, 'info', 5000);
   }
   
   await saveSettings({
@@ -758,6 +842,7 @@ setManualPositionBtn.addEventListener('click', async () => {
   
   await updateCurrentPositionDisplay();
   setFeedback('Position set manually!', 'success');
+  console.log(`[Nodi] Manual position set: lat=${lat}, lon=${lon}`);
   manualLatInput.value = '';
   manualLonInput.value = '';
 });
