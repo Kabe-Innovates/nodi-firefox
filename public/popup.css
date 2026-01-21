@@ -173,11 +173,10 @@ body {
   text-align: center;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 4px;
 }
 
 .header h1 {
@@ -187,11 +186,78 @@ body {
   margin-bottom: 0;
 }
 
-.status-section {
-  background: transparent;
-  border: 1px solid var(--border-light);
+.header-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.4px;
+}
+
+.view-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.tab-btn {
+  padding: 8px 12px;
   border-radius: var(--radius-md);
-  padding: var(--spacing-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.tab-btn.is-active {
+  color: var(--bg-primary);
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.tab-btn:hover:not(.is-active) {
+  color: var(--text-primary);
+  border-color: var(--border-light);
+  background: var(--bg-tertiary);
+}
+
+.view-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.view-panel {
+  display: none;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.view-panel.is-active {
+  display: flex;
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-subtle);
+}
+
+.status-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-subtle);
 }
 
 .status-label {
@@ -208,7 +274,7 @@ body {
   display: flex;
   gap: var(--spacing-md);
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
 }
 
 .status-dot {
@@ -270,13 +336,37 @@ body {
   color: var(--text-primary);
 }
 
-.quick-actions {
+.status-actions {
+  border-top: 1px solid var(--border-color);
   margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+}
+
+.status-actions summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.status-actions summary:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.status-actions[open] summary {
+  margin-bottom: var(--spacing-sm);
+}
+
+.quick-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-sm);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--border-color);
 }
 
 .quick-actions button {
@@ -303,11 +393,11 @@ summary {
 }
 
 .stats-section {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  margin-bottom: 0;
+  box-shadow: var(--shadow-subtle);
 }
 
 .stats-section h2 {
@@ -326,7 +416,7 @@ summary {
 
 .stat-card {
   background: var(--bg-primary);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   text-align: center;
@@ -388,10 +478,11 @@ summary {
 }
 
 .settings-section {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-subtle);
+  border-radius: var(--radius-lg);
 }
 
 .settings-section h2 {
@@ -598,10 +689,11 @@ textarea {
    ============================================ */
 
 .timer-section {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-subtle);
+  border-radius: var(--radius-lg);
 }
 
 .timer-header {
@@ -693,21 +785,21 @@ textarea {
 }
 
 .timer-config {
-  border-top: 1px solid var(--border-color);
-  padding-top: var(--spacing-md);
-  margin-top: var(--spacing-md);
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 .timer-config summary {
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  margin: calc(var(--spacing-md) * -1);
+  padding: 8px 12px;
   border-radius: var(--radius-md);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  border: 1px solid var(--border-light);
 }
 
 .timer-grid {
@@ -729,7 +821,7 @@ textarea {
 }
 
 .timer-config[open] summary {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
 }
 
 /* ============================================
@@ -737,10 +829,11 @@ textarea {
    ============================================ */
 
 .zones-section {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-subtle);
+  border-radius: var(--radius-lg);
 }
 
 .zones-header {
@@ -771,7 +864,7 @@ textarea {
 }
 
 .zone-card {
-  background: transparent;
+  background: var(--bg-primary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
@@ -846,7 +939,7 @@ textarea {
 }
 
 .zone-form {
-  background: transparent;
+  background: var(--bg-primary);
   border: 1.5px solid var(--text-primary);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);

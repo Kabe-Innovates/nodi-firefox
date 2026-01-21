@@ -91,6 +91,10 @@ let snooze60Btn: HTMLElement;
 let disableTodayBtn: HTMLElement;
 let clearSnoozeBtn: HTMLElement;
 let feedbackElement: HTMLElement;
+let viewHomeBtn: HTMLButtonElement;
+let viewManageBtn: HTMLButtonElement;
+let viewHomePanel: HTMLElement;
+let viewManagePanel: HTMLElement;
 
 /**
  * Initialize all DOM element references
@@ -159,6 +163,10 @@ function initDOMElements() {
   disableTodayBtn = document.getElementById('disable-today')!;
   clearSnoozeBtn = document.getElementById('clear-snooze')!;
   feedbackElement = document.getElementById('feedback')!;
+  viewHomeBtn = document.getElementById('view-home') as HTMLButtonElement;
+  viewManageBtn = document.getElementById('view-manage') as HTMLButtonElement;
+  viewHomePanel = document.getElementById('view-home-panel')!;
+  viewManagePanel = document.getElementById('view-manage-panel')!;
   
   console.log('[Nodi] DOM elements initialized');
 }
@@ -179,6 +187,20 @@ function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info
   setTimeout(() => {
     feedbackElement.classList.remove('is-visible');
   }, duration);
+}
+
+// ============================================
+// VIEW TOGGLING
+// ============================================
+
+function setActiveView(view: 'home' | 'manage') {
+  const isHome = view === 'home';
+  viewHomeBtn.classList.toggle('is-active', isHome);
+  viewManageBtn.classList.toggle('is-active', !isHome);
+  viewHomeBtn.setAttribute('aria-selected', String(isHome));
+  viewManageBtn.setAttribute('aria-selected', String(!isHome));
+  viewHomePanel.classList.toggle('is-active', isHome);
+  viewManagePanel.classList.toggle('is-active', !isHome);
 }
 
 // ============================================
@@ -427,6 +449,7 @@ async function renderZones() {
 }
 
 async function showZoneForm(zoneId?: string) {
+  setActiveView('manage');
   zoneForm.style.display = 'block';
   
   if (zoneId) {
@@ -537,6 +560,9 @@ async function updateCurrentPositionDisplay() {
 function attachEventListeners() {
   console.log('[Nodi] Attaching event listeners');
 
+  viewHomeBtn.addEventListener('click', () => setActiveView('home'));
+  viewManageBtn.addEventListener('click', () => setActiveView('manage'));
+
 // Timer controls
 timerStartBtn.addEventListener('click', async () => {
   await startTimer('focus');
@@ -607,6 +633,7 @@ resetStatsBtn.addEventListener('click', async () => {
 
 // Add zone button
 addZoneBtn.addEventListener('click', () => {
+  setActiveView('manage');
   showZoneForm();
 });
 
@@ -902,6 +929,8 @@ async function init() {
   
   // Attach all event listeners
   attachEventListeners();
+
+  setActiveView('home');
   
   await loadTheme();
   await updateTimerDisplay();
