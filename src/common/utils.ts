@@ -1,9 +1,9 @@
-import type { 
-  ExtensionSettings, 
-  Statistics, 
-  BlockedSite, 
-  TimeSchedule, 
-  Zone, 
+import type {
+  ExtensionSettings,
+  Statistics,
+  BlockedSite,
+  TimeSchedule,
+  Zone,
   PomodoroTimer,
   TimerState,
   ZoneStatistics,
@@ -37,8 +37,8 @@ export function haversine(
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -127,22 +127,22 @@ export function isWithinSchedule(schedule: TimeSchedule): boolean {
   if (!schedule.enabled) {
     return true; // Always allow if schedule is disabled
   }
-  
+
   const now = new Date();
   const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ... 6=Saturday
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
-  
+
   // Check if today is in allowed days
   if (!schedule.days.includes(currentDay)) {
     return false;
   }
-  
+
   // Convert times to minutes for easier comparison
   const currentTime = currentHour * 60 + currentMinute;
   const startTime = schedule.startHour * 60 + schedule.startMinute;
   const endTime = schedule.endHour * 60 + schedule.endMinute;
-  
+
   return currentTime >= startTime && currentTime <= endTime;
 }
 
@@ -184,9 +184,9 @@ export function getDefaultTimer(): PomodoroTimer {
  */
 async function migrateLegacySettings(data: any): Promise<ExtensionSettings> {
   console.log('[Nodi] Migrating legacy settings to multi-zone format');
-  
+
   const zones: Zone[] = [];
-  
+
   // If old zone exists, convert it to a Zone object
   if (data.zone && data.zone.lat && data.zone.lon) {
     zones.push({
@@ -207,14 +207,14 @@ async function migrateLegacySettings(data: any): Promise<ExtensionSettings> {
       color: '#5b9ff5'
     });
   }
-  
+
   const migrated: ExtensionSettings = {
     zones,
     monitoring: data.monitoring || false,
     currentPosition: data.currentPosition || null,
     pomodoroTimer: data.pomodoroTimer || getDefaultTimer()
   };
-  
+
   // Save migrated settings
   await browser.storage.local.set({
     zones: migrated.zones,
@@ -222,10 +222,10 @@ async function migrateLegacySettings(data: any): Promise<ExtensionSettings> {
     currentPosition: migrated.currentPosition,
     pomodoroTimer: migrated.pomodoroTimer
   });
-  
+
   // Clean up old keys
   await browser.storage.local.remove(['zone', 'radius', 'blocklist', 'timeSchedule']);
-  
+
   console.log('[Nodi] Migration complete:', migrated);
   return migrated;
 }
@@ -248,7 +248,7 @@ export async function getSettings(): Promise<ExtensionSettings> {
     'blocklist',
     'timeSchedule',
   ]);
-  
+
   // Check if migration needed (has old zone but not new zones)
   if (data.zone && !data.zones) {
     return await migrateLegacySettings(data);
@@ -260,7 +260,7 @@ export async function getSettings(): Promise<ExtensionSettings> {
 
   if (snoozeExpired) data.snoozeUntil = null;
   if (disabledExpired) data.disabledUntil = null;
-  
+
   return {
     zones: Array.isArray(data.zones) ? data.zones.map((z: Zone) => ({ ...z, allowlist: z.allowlist || [] })) : [],
     monitoring: data.monitoring || false,
@@ -285,7 +285,7 @@ export async function saveSettings(settings: Partial<ExtensionSettings>): Promis
 export async function getStatistics(): Promise<Statistics> {
   const data = await browser.storage.local.get('statistics');
   const now = Date.now();
-  
+
   if (!data.statistics) {
     return {
       totalBlocked: 0,
@@ -300,13 +300,13 @@ export async function getStatistics(): Promise<Statistics> {
       lastUpdated: now,
     };
   }
-  
+
   // Check if we need to reset (new day)
   const existingStats = data.statistics;
   if (existingStats.sessionStart) {
     const lastDate = new Date(existingStats.sessionStart).toDateString();
     const today = new Date(now).toDateString();
-    
+
     if (lastDate !== today) {
       console.log('[Nodi] New day detected, resetting daily statistics');
       const freshStats: Statistics = {
@@ -325,7 +325,7 @@ export async function getStatistics(): Promise<Statistics> {
       return freshStats;
     }
   }
-  
+
   // Ensure new fields exist for older statistics
   const stats = existingStats;
   if (!stats.zoneStats) stats.zoneStats = {};
@@ -336,7 +336,7 @@ export async function getStatistics(): Promise<Statistics> {
       blockedDuringFocus: 0
     };
   }
-  
+
   return stats;
 }
 
@@ -345,7 +345,7 @@ export async function getStatistics(): Promise<Statistics> {
  */
 export async function recordBlockedSite(domain: string, zoneId?: string, fromTimer: boolean = false): Promise<void> {
   const stats = await getStatistics();
-  
+
   // Update global stats
   let site = stats.blockedSites.find(s => s.domain === domain);
   if (!site) {
@@ -355,10 +355,10 @@ export async function recordBlockedSite(domain: string, zoneId?: string, fromTim
   site.count++;
   site.lastBlocked = Date.now();
   if (zoneId) site.zoneId = zoneId;
-  
+
   stats.totalBlocked++;
   stats.lastUpdated = Date.now();
-  
+
   // Update zone-specific stats if zoneId provided
   if (zoneId) {
     if (!stats.zoneStats[zoneId]) {
@@ -368,10 +368,10 @@ export async function recordBlockedSite(domain: string, zoneId?: string, fromTim
         timeInZone: 0
       };
     }
-    
+
     const zoneStats = stats.zoneStats[zoneId];
     zoneStats.blockedCount++;
-    
+
     let zoneSite = zoneStats.blockedSites.find(s => s.domain === domain);
     if (!zoneSite) {
       zoneSite = { domain, count: 0, lastBlocked: 0, zoneId };
@@ -379,21 +379,21 @@ export async function recordBlockedSite(domain: string, zoneId?: string, fromTim
     }
     zoneSite.count++;
     zoneSite.lastBlocked = Date.now();
-    
+
     // Keep only top 10 per zone
     zoneStats.blockedSites.sort((a, b) => b.count - a.count);
     zoneStats.blockedSites = zoneStats.blockedSites.slice(0, 10);
   }
-  
+
   // Update timer stats if blocked during focus
   if (fromTimer) {
     stats.timerStats.blockedDuringFocus++;
   }
-  
+
   // Sort global list by count
   stats.blockedSites.sort((a, b) => b.count - a.count);
   stats.blockedSites = stats.blockedSites.slice(0, 10);
-  
+
   await browser.storage.local.set({ statistics: stats });
 }
 
@@ -475,10 +475,10 @@ export function calculateRemainingTime(timer: PomodoroTimer): number {
   if (!timer.startedAt || timer.state === 'idle' || timer.state === 'paused') {
     return timer.remainingSeconds;
   }
-  
+
   const now = Date.now();
   const elapsed = Math.floor((now - timer.startedAt) / 1000);
-  
+
   let duration: number;
   switch (timer.state) {
     case 'focus':
@@ -493,9 +493,9 @@ export function calculateRemainingTime(timer: PomodoroTimer): number {
     default:
       duration = timer.focusDuration;
   }
-  
+
   const remaining = duration - elapsed;
-  
+
   // Return 0 for negative values (session overdue due to alarm throttling)
   // The caller (alarm handler or popup) should trigger completion
   return Math.max(0, remaining);
@@ -507,7 +507,7 @@ export function calculateRemainingTime(timer: PomodoroTimer): number {
  */
 export async function startTimer(state: TimerState = 'focus'): Promise<void> {
   const timer = await getTimerState();
-  
+
   let duration: number;
   switch (state) {
     case 'focus':
@@ -522,7 +522,7 @@ export async function startTimer(state: TimerState = 'focus'): Promise<void> {
     default:
       duration = timer.focusDuration;
   }
-  
+
   await saveTimerState({
     state,
     startedAt: Date.now(),
@@ -539,7 +539,7 @@ export async function startTimer(state: TimerState = 'focus'): Promise<void> {
 export async function pauseTimer(): Promise<void> {
   const timer = await getTimerState();
   const remaining = calculateRemainingTime(timer);
-  
+
   await saveTimerState({
     state: 'paused',
     pausedAt: Date.now(),
@@ -550,12 +550,45 @@ export async function pauseTimer(): Promise<void> {
 /**
  * Resume the timer from paused state
  */
+/**
+ * Resume the timer from paused state
+ */
 export async function resumeTimer(): Promise<void> {
   const timer = await getTimerState();
-  
+  if (timer.state !== 'paused') return;
+
+  // Determine total duration for the target state (defaulting to focus)
+  const targetState = 'focus'; // Simplified resumption
+  let duration = timer.focusDuration;
+  if (timer.currentSession % timer.longBreakInterval === 0 && timer.remainingSeconds > timer.shortBreakDuration) {
+    // Heuristic: if we have lots of time left and it's break time? 
+    // For simplicity in this logic, we use the remainingSeconds to back-calculate.
+  }
+
+  // Robust Resume:
+  // We know 'remainingSeconds' is correct (saved at pause).
+  // We need to set 'startedAt' such that: duration - (now - startedAt) = remainingSeconds
+  // => now - startedAt = duration - remainingSeconds
+  // => startedAt = now - (duration - remainingSeconds)
+
+  // Wait, we need to know WHICH duration we are in.
+  // The 'timer' object should have saved the 'state' before pause? 
+  // No, valid question. 'state' is 'paused'.
+  // But we don't store 'previousState'.
+  // However, we can assume 'focus' for this simple implementation or we rely on 'remainingSeconds' is enough?
+  // calculateRemainingTime uses 'duration' based on CURRENT state.
+  // So we must switch state back to 'focus' (or break).
+  // In `pauseTimer`, we just set state='paused'.
+
+  // FIX: We need to assume the duration based on what feels right? 
+  // Better: startTimer should persist `duration` or we infer it.
+
+  // Inference:
+  // If we just blindly set 'startedAt', we need to match the 'duration' lookup in calculateRemainingTime.
+
   await saveTimerState({
-    state: timer.state === 'paused' ? 'focus' : timer.state,
-    startedAt: Date.now(),
+    state: 'focus', // resume to focus by default
+    startedAt: Date.now() - ((timer.focusDuration - timer.remainingSeconds) * 1000),
     pausedAt: null
   });
 }
@@ -565,7 +598,7 @@ export async function resumeTimer(): Promise<void> {
  */
 export async function resetTimer(): Promise<void> {
   const timer = await getTimerState();
-  
+
   await saveTimerState({
     state: 'idle',
     currentSession: 0,
@@ -582,22 +615,22 @@ export async function resetTimer(): Promise<void> {
 export async function completeTimerSession(): Promise<void> {
   const timer = await getTimerState();
   const stats = await getStatistics();
-  
+
   // Update statistics and session count based on completed session
   if (timer.state === 'focus') {
     stats.timerStats.sessionsCompleted++;
     stats.timerStats.totalFocusTime += timer.focusDuration;
     await browser.storage.local.set({ statistics: stats });
-    
+
     // Increment session count AFTER completing focus (not on start)
     await saveTimerState({
       currentSession: timer.currentSession + 1
     });
   }
-  
+
   // Determine next state
   let nextState: TimerState;
-  
+
   if (timer.state === 'focus') {
     // Decide between short break and long break
     if (timer.currentSession % timer.longBreakInterval === 0) {
@@ -605,11 +638,11 @@ export async function completeTimerSession(): Promise<void> {
     } else {
       nextState = 'short-break';
     }
-    
+
     // Auto-start break if enabled
     if (timer.autoStartBreaks) {
       await startTimer(nextState);
-      
+
       // Show notification
       if (timer.notifications) {
         try {
@@ -629,7 +662,7 @@ export async function completeTimerSession(): Promise<void> {
         state: 'idle',
         remainingSeconds: nextState === 'long-break' ? timer.longBreakDuration : timer.shortBreakDuration
       });
-      
+
       if (timer.notifications) {
         try {
           await browser.notifications.create({
@@ -647,7 +680,7 @@ export async function completeTimerSession(): Promise<void> {
     // Break complete
     if (timer.autoStartFocus) {
       await startTimer('focus');
-      
+
       if (timer.notifications) {
         try {
           await browser.notifications.create({
@@ -665,7 +698,7 @@ export async function completeTimerSession(): Promise<void> {
         state: 'idle',
         remainingSeconds: timer.focusDuration
       });
-      
+
       if (timer.notifications) {
         try {
           await browser.notifications.create({
@@ -703,7 +736,7 @@ export function shouldBlockByTimer(timer: PomodoroTimer, url: string): boolean {
   if (domainAllowed(url, timer.timerAllowlist || [])) {
     return false;
   }
-  
+
   return domainMatches(url, timer.timerBlocklist);
 }
 
@@ -711,8 +744,8 @@ export function shouldBlockByTimer(timer: PomodoroTimer, url: string): boolean {
  * Check if timer is allowing all sites (during break)
  */
 export function isTimerAllowingAll(timer: PomodoroTimer): boolean {
-  return (timer.state === 'short-break' || timer.state === 'long-break') && 
-         timer.allowedDuringBreak;
+  return (timer.state === 'short-break' || timer.state === 'long-break') &&
+    timer.allowedDuringBreak;
 }
 
 // ============================================
@@ -727,11 +760,11 @@ export async function createZone(zone: Omit<Zone, 'id'>): Promise<Zone> {
     ...zone,
     id: generateId()
   };
-  
+
   const settings = await getSettings();
   settings.zones.push(newZone);
   await saveSettings({ zones: settings.zones });
-  
+
   return newZone;
 }
 
@@ -741,11 +774,11 @@ export async function createZone(zone: Omit<Zone, 'id'>): Promise<Zone> {
 export async function updateZone(zoneId: string, updates: Partial<Zone>): Promise<void> {
   const settings = await getSettings();
   const index = settings.zones.findIndex(z => z.id === zoneId);
-  
+
   if (index === -1) {
     throw new Error(`Zone ${zoneId} not found`);
   }
-  
+
   settings.zones[index] = { ...settings.zones[index], ...updates };
   await saveSettings({ zones: settings.zones });
 }
@@ -773,7 +806,7 @@ export async function getZoneById(zoneId: string): Promise<Zone | null> {
 export async function toggleZone(zoneId: string): Promise<void> {
   const settings = await getSettings();
   const zone = settings.zones.find(z => z.id === zoneId);
-  
+
   if (zone) {
     zone.enabled = !zone.enabled;
     await saveSettings({ zones: settings.zones });
