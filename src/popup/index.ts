@@ -1,7 +1,7 @@
-import { 
-  getSettings, 
-  saveSettings, 
-  getStatistics, 
+import {
+  getSettings,
+  saveSettings,
+  getStatistics,
   resetStatistics,
   parseBlocklist,
   getTimerState,
@@ -28,7 +28,8 @@ import type { Zone, PomodoroTimer, TimerState } from '../types/index';
 // ============================================
 
 // DOM elements - will be initialized after DOM ready
-let statusDot: HTMLElement;
+// DOM elements - will be initialized after DOM ready
+let statusIndicator: HTMLElement;
 let timerStateBadge: HTMLElement;
 let timerTimeDisplay: HTMLElement;
 let timerSessionDisplay: HTMLElement;
@@ -49,7 +50,7 @@ let timerAllowDuringBreakCheckbox: HTMLInputElement;
 let timerBlocklistTextarea: HTMLTextAreaElement;
 let timerAllowlistTextarea: HTMLTextAreaElement;
 let saveTimerConfigBtn: HTMLElement;
-let statusDetail: HTMLElement;
+let statusText: HTMLElement;
 let statsSection: HTMLElement;
 let statBlockedCount: HTMLElement;
 let statTimerSessions: HTMLElement;
@@ -58,7 +59,7 @@ let blockedSitesList: HTMLElement;
 let resetStatsBtn: HTMLElement;
 let addZoneBtn: HTMLElement;
 let zonesList: HTMLElement;
-let noZonesMessage: HTMLElement;
+let zonesContainer: HTMLElement; // Replaces simple list ref if needed
 let zoneForm: HTMLElement;
 let zoneFormTitle: HTMLElement;
 let zoneFormId: HTMLInputElement;
@@ -91,8 +92,8 @@ let snooze60Btn: HTMLElement;
 let disableTodayBtn: HTMLElement;
 let clearSnoozeBtn: HTMLElement;
 let feedbackElement: HTMLElement;
-let viewHomeBtn: HTMLButtonElement;
-let viewManageBtn: HTMLButtonElement;
+let viewHomeTab: HTMLElement;
+let viewManageTab: HTMLElement;
 let viewHomePanel: HTMLElement;
 let viewManagePanel: HTMLElement;
 
@@ -100,7 +101,7 @@ let viewManagePanel: HTMLElement;
  * Initialize all DOM element references
  */
 function initDOMElements() {
-  statusDot = document.getElementById('status-dot')!;
+  statusIndicator = document.getElementById('status-indicator')!;
   timerStateBadge = document.getElementById('timer-state-badge')!;
   timerTimeDisplay = document.getElementById('timer-time')!;
   timerSessionDisplay = document.getElementById('timer-session')!;
@@ -121,18 +122,17 @@ function initDOMElements() {
   timerBlocklistTextarea = document.getElementById('timer-blocklist') as HTMLTextAreaElement;
   timerAllowlistTextarea = document.getElementById('timer-allowlist') as HTMLTextAreaElement;
   saveTimerConfigBtn = document.getElementById('save-timer-config')!;
-  statusDetail = document.getElementById('status-detail')!;
+  statusText = document.getElementById('status-text')!;
   statsSection = document.getElementById('stats-section')!;
   statBlockedCount = document.getElementById('stat-blocked-count')!;
   statTimerSessions = document.getElementById('stat-timer-sessions')!;
   statTopSite = document.getElementById('stat-top-site')!;
-  blockedSitesList = document.getElementById('blocked-sites-list')!;
+  // blockedSitesList handled differently if inside statsSection
   resetStatsBtn = document.getElementById('reset-stats')!;
   addZoneBtn = document.getElementById('add-zone')!;
   zonesList = document.getElementById('zones-list')!;
-  noZonesMessage = document.getElementById('no-zones-message')!;
   zoneForm = document.getElementById('zone-form')!;
-  zoneFormTitle = document.getElementById('zone-form-title')!;
+  zoneFormTitle = document.querySelector('.form-header h3') as HTMLElement;
   zoneFormId = document.getElementById('zone-form-id') as HTMLInputElement;
   zoneNameInput = document.getElementById('zone-name') as HTMLInputElement;
   zoneSetCurrentLocationBtn = document.getElementById('zone-set-current-location')!;
@@ -163,11 +163,11 @@ function initDOMElements() {
   disableTodayBtn = document.getElementById('disable-today')!;
   clearSnoozeBtn = document.getElementById('clear-snooze')!;
   feedbackElement = document.getElementById('feedback')!;
-  viewHomeBtn = document.getElementById('view-home') as HTMLButtonElement;
-  viewManageBtn = document.getElementById('view-manage') as HTMLButtonElement;
-  viewHomePanel = document.getElementById('view-home-panel')!;
-  viewManagePanel = document.getElementById('view-manage-panel')!;
-  
+  viewHomeTab = document.getElementById('view-home-tab')!;
+  viewManageTab = document.getElementById('view-manage-tab')!;
+  viewHomePanel = document.getElementById('view-home')!;
+  viewManagePanel = document.getElementById('view-manage')!;
+
   console.log('[Nodi] DOM elements initialized');
 }
 
@@ -193,14 +193,21 @@ function setFeedback(message: string, type: 'success' | 'error' | 'info' = 'info
 // VIEW TOGGLING
 // ============================================
 
+// ============================================
+// VIEW TOGGLING
+// ============================================
+
 function setActiveView(view: 'home' | 'manage') {
   const isHome = view === 'home';
-  viewHomeBtn.classList.toggle('is-active', isHome);
-  viewManageBtn.classList.toggle('is-active', !isHome);
-  viewHomeBtn.setAttribute('aria-selected', String(isHome));
-  viewManageBtn.setAttribute('aria-selected', String(!isHome));
-  viewHomePanel.classList.toggle('is-active', isHome);
-  viewManagePanel.classList.toggle('is-active', !isHome);
+  viewHomeTab.classList.toggle('active', isHome);
+  viewManageTab.classList.toggle('active', !isHome);
+  viewHomePanel.classList.toggle('active', isHome);
+  viewManagePanel.classList.toggle('active', !isHome);
+
+  // Hide forms if switching away
+  if (isHome) {
+    hideZoneForm();
+  }
 }
 
 // ============================================
@@ -243,19 +250,20 @@ browser.runtime.onMessage.addListener((message) => {
 async function updateStatusDisplay() {
   const settings = await getSettings();
   const status = getMonitoringStatus(settings);
-  
-  statusDot.className = `status-dot ${status.state}`;
-  
-  if (status.state === 'idle') {
-    statusDetail.textContent = 'Monitoring is idle';
-  } else if (status.state === 'active') {
-    statusDetail.textContent = 'Monitoring is active';
-  } else if (status.state === 'snoozed') {
+
+  statusIndicator.className = `${status.state} blink`;
+  statusIndicator.classList.toggle('active', status.state === 'active');
+
+  let text = 'IDLE';
+  if (status.state === 'active') text = 'MONITORING_ACTIVE';
+  else if (status.state === 'snoozed') {
     const remaining = Math.ceil((status.expiresAt! - Date.now()) / 1000 / 60);
-    statusDetail.textContent = `Snoozed for ${remaining}m`;
+    text = `SNOOZED [${remaining}m]`;
   } else if (status.state === 'disabled') {
-    statusDetail.textContent = 'Disabled until tomorrow';
+    text = 'DISABLED_24H';
   }
+
+  statusText.textContent = `STATUS: ${text}`;
   monitoringEnabledCheckbox.checked = isMonitoringActive(settings);
 }
 
@@ -283,12 +291,12 @@ let timerUpdateInterval: ReturnType<typeof setInterval> | null = null;
 async function updateTimerDisplay() {
   const timer = await getTimerState();
   const remaining = calculateRemainingTime(timer);
-  
+
   timerTimeDisplay.textContent = formatTime(remaining);
   timerSessionDisplay.textContent = `Session ${timer.currentSession}`;
   timerStateBadge.textContent = timer.state.replace('-', ' ');
   timerStateBadge.className = `state-badge ${timer.state}`;
-  
+
   let duration: number;
   switch (timer.state) {
     case 'focus':
@@ -303,10 +311,10 @@ async function updateTimerDisplay() {
     default:
       duration = timer.focusDuration;
   }
-  
+
   const progress = timer.state === 'idle' ? 0 : ((duration - remaining) / duration) * 100;
   timerProgressBar.style.width = `${progress}%`;
-  
+
   if (timer.state === 'idle') {
     timerStartBtn.style.display = 'block';
     timerPauseBtn.style.display = 'none';
@@ -324,20 +332,20 @@ async function updateTimerDisplay() {
 
 function startTimerUpdateLoop() {
   if (timerUpdateInterval) return;
-  
+
   // Update immediately on start to avoid 1-second lag
   updateTimerDisplay().catch(err => console.error('[Nodi] Timer display error:', err));
-  
+
   timerUpdateInterval = setInterval(async () => {
     const timer = await getTimerState();
     const remaining = calculateRemainingTime(timer);
-    
+
     // Check if timer should complete (handles alarm throttling)
     if (remaining <= 0 && timer.state !== 'idle' && timer.state !== 'paused') {
       console.log('[Nodi] Timer completion detected in popup');
       await completeTimerSession();
     }
-    
+
     await updateTimerDisplay();
   }, 1000);
 }
@@ -370,79 +378,51 @@ async function loadTimerConfig() {
 
 async function renderZones() {
   const settings = await getSettings();
-  
+
+  zonesList.innerHTML = '';
+
   if (settings.zones.length === 0) {
-    noZonesMessage.style.display = 'block';
+    zonesList.innerHTML = '<div class="terminal-msg">NO_ZONES_CONFIGURED</div>';
     return;
   }
-  
-  noZonesMessage.style.display = 'none';
-  zonesList.innerHTML = '';
-  
+
   for (const zone of settings.zones) {
-    const card = document.createElement('div');
-    card.className = 'zone-card';
-    card.innerHTML = `
-      <div class="zone-card-header">
-        <div class="zone-name">
-          <span class="zone-color-dot" style="background-color: ${zone.color || '#5b9ff5'}"></span>
-          ${zone.name}
-        </div>
-        <label class="zone-toggle">
-          <input type="checkbox" ${zone.enabled ? 'checked' : ''} data-zone-id="${zone.id}" class="zone-toggle-checkbox" />
-          <span>${zone.enabled ? 'Active' : 'Inactive'}</span>
-        </label>
-      </div>
-      <div class="zone-details">
-        <div class="zone-detail-item">
-          <span>Location:</span>
-          <span>${zone.location.lat.toFixed(4)}, ${zone.location.lon.toFixed(4)}</span>
-        </div>
-        <div class="zone-detail-item">
-          <span>Radius:</span>
-          <span>${zone.radius}m</span>
-        </div>
-        <div class="zone-detail-item">
-          <span>Blocklist:</span>
-          <span>${zone.blocklist.length} sites</span>
-        </div>
-        <div class="zone-detail-item">
-          <span>Schedule:</span>
-          <span>${zone.timeSchedule.enabled ? 'Enabled' : 'Disabled'}</span>
+    const item = document.createElement('div');
+    item.className = 'zone-item';
+
+    // Safety check for location
+    const lat = zone.location?.lat ? zone.location.lat.toFixed(4) : '?.????';
+
+    item.innerHTML = `
+      <div class="zone-info grow">
+        <div style="font-weight:700; color: ${zone.color || '#fff'}">${zone.name}</div>
+        <div style="font-size:10px; color:var(--text-secondary)">
+           [R:${zone.radius}m] ${zone.enabled ? 'ACTIVE' : 'OFF'}
         </div>
       </div>
-      <div class="zone-actions">
-        <button class="btn btn-secondary btn-sm zone-edit-btn" data-zone-id="${zone.id}">Edit</button>
-        <button class="btn btn-tertiary btn-sm zone-delete-btn" data-zone-id="${zone.id}">Delete</button>
+      <div class="zone-actions row" style="gap:4px">
+        <button class="btn-text zone-edit-btn" data-zone-id="${zone.id}">[EDIT]</button>
+        <button class="btn-text zone-delete-btn" data-zone-id="${zone.id}">[DEL]</button>
       </div>
     `;
-    zonesList.appendChild(card);
+    zonesList.appendChild(item);
   }
-  
+
   // Add event listeners
-  document.querySelectorAll('.zone-toggle-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', async (e) => {
-      const zoneId = (e.target as HTMLInputElement).dataset.zoneId!;
-      await toggleZone(zoneId);
-      await renderZones();
-      setFeedback('Zone updated', 'success');
-    });
-  });
-  
   document.querySelectorAll('.zone-edit-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const zoneId = (e.target as HTMLElement).dataset.zoneId!;
       await showZoneForm(zoneId);
     });
   });
-  
+
   document.querySelectorAll('.zone-delete-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const zoneId = (e.target as HTMLElement).dataset.zoneId!;
-      if (confirm('Are you sure you want to delete this zone?')) {
+      if (confirm('CONFIRM_DELETE_ZONE?')) {
         await deleteZone(zoneId);
         await renderZones();
-        setFeedback('Zone deleted', 'success');
+        setFeedback('ZONE_DELETED', 'success');
       }
     });
   });
@@ -451,12 +431,12 @@ async function renderZones() {
 async function showZoneForm(zoneId?: string) {
   setActiveView('manage');
   zoneForm.style.display = 'block';
-  
+
   if (zoneId) {
     const settings = await getSettings();
     const zone = settings.zones.find(z => z.id === zoneId);
     if (!zone) return;
-    
+
     zoneFormTitle.textContent = 'Edit Zone';
     zoneFormId.value = zone.id;
     zoneNameInput.value = zone.name;
@@ -472,7 +452,7 @@ async function showZoneForm(zoneId?: string) {
     zoneEndHourInput.value = String(zone.timeSchedule.endHour);
     zoneEndMinuteInput.value = String(zone.timeSchedule.endMinute);
     zoneColorInput.value = zone.color || '#5b9ff5';
-    
+
     const dayCheckboxes = zoneScheduleSettings.querySelectorAll('.day-checkbox input[type="checkbox"]');
     dayCheckboxes.forEach((cb) => {
       const checkbox = cb as HTMLInputElement;
@@ -494,14 +474,14 @@ async function showZoneForm(zoneId?: string) {
     zoneEndHourInput.value = '17';
     zoneEndMinuteInput.value = '0';
     zoneColorInput.value = '#5b9ff5';
-    
+
     const dayCheckboxes = zoneScheduleSettings.querySelectorAll('.day-checkbox input[type="checkbox"]');
     dayCheckboxes.forEach((cb) => {
       const checkbox = cb as HTMLInputElement;
       checkbox.checked = [1, 2, 3, 4, 5].includes(Number(checkbox.value));
     });
   }
-  
+
   zoneForm.scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -513,29 +493,25 @@ function hideZoneForm() {
 // STATISTICS FUNCTIONS
 // ============================================
 
+// ============================================
+// STATISTICS FUNCTIONS
+// ============================================
+
 async function loadStatistics() {
   const stats = await getStatistics();
-  
-  if (stats.totalBlocked === 0) {
-    statsSection.style.display = 'none';
-    return;
+
+  if (stats.totalBlocked === 0 && stats.timerStats.sessionsCompleted === 0) {
+    // maybe show empty state or just 0s
   }
-  
+
+  // statsSection is always visible now in logic, just updated content
   statsSection.style.display = 'block';
   statBlockedCount.textContent = String(stats.totalBlocked);
   statTimerSessions.textContent = String(stats.timerStats.sessionsCompleted);
-  statTopSite.textContent = stats.blockedSites.length > 0 ? stats.blockedSites[0].domain : '-';
-  
-  if (stats.blockedSites.length > 0) {
-    blockedSitesList.innerHTML = stats.blockedSites.map(site => `
-      <div class="blocked-site-item">
-        <span class="blocked-site-domain">${site.domain}</span>
-        <span class="blocked-site-count">${site.count}</span>
-      </div>
-    `).join('');
-  } else {
-    blockedSitesList.innerHTML = '<p style="color: #888; font-size: 12px;">No sites blocked yet</p>';
-  }
+  statTopSite.textContent = stats.blockedSites.length > 0 ? stats.blockedSites[0].domain.toUpperCase() : 'NULL';
+
+  // List not shown in simplified terminal view, but if we wanted to:
+  // We could inject it into a details element if present.
 }
 // ============================================
 // CURRENT POSITION FUNCTIONS
@@ -543,7 +519,7 @@ async function loadStatistics() {
 
 async function updateCurrentPositionDisplay() {
   const settings = await getSettings();
-  
+
   if (settings.currentPosition) {
     currentPositionDisplay.textContent = `${settings.currentPosition.lat.toFixed(4)}, ${settings.currentPosition.lon.toFixed(4)}`;
     currentPositionDisplay.style.color = '#4ade80';
@@ -560,361 +536,361 @@ async function updateCurrentPositionDisplay() {
 function attachEventListeners() {
   console.log('[Nodi] Attaching event listeners');
 
-  viewHomeBtn.addEventListener('click', () => setActiveView('home'));
-  viewManageBtn.addEventListener('click', () => setActiveView('manage'));
+  viewHomeTab.addEventListener('click', () => setActiveView('home'));
+  viewManageTab.addEventListener('click', () => setActiveView('manage'));
 
-// Timer controls
-timerStartBtn.addEventListener('click', async () => {
-  await startTimer('focus');
-  await updateTimerDisplay();
-  setFeedback('Focus session started!', 'success');
-});
-
-timerPauseBtn.addEventListener('click', async () => {
-  await pauseTimer();
-  await updateTimerDisplay();
-  setFeedback('Timer paused', 'info');
-});
-
-timerResumeBtn.addEventListener('click', async () => {
-  await resumeTimer();
-  await updateTimerDisplay();
-  setFeedback('Timer resumed', 'success');
-});
-
-timerResetBtn.addEventListener('click', async () => {
-  if (confirm('Reset timer to idle?')) {
-    await resetTimer();
+  // Timer controls
+  timerStartBtn.addEventListener('click', async () => {
+    await startTimer('focus');
     await updateTimerDisplay();
-    setFeedback('Timer reset', 'info');
-  }
-});
-
-// Save timer config
-saveTimerConfigBtn.addEventListener('click', async () => {
-  const focusDuration = Number(focusDurationInput.value) * 60;
-  const shortBreakDuration = Number(shortBreakInput.value) * 60;
-  const longBreakDuration = Number(longBreakInput.value) * 60;
-  const longBreakInterval = Number(longBreakIntervalInput.value);
-  const autoStartBreaks = timerAutoStartBreaksCheckbox.checked;
-  const autoStartFocus = timerAutoStartFocusCheckbox.checked;
-  const notifications = timerNotificationsCheckbox.checked;
-  const blockDuringFocus = timerBlockDuringFocusCheckbox.checked;
-  const allowedDuringBreak = timerAllowDuringBreakCheckbox.checked;
-  const timerBlocklist = parseBlocklist(timerBlocklistTextarea.value);
-  const timerAllowlist = parseBlocklist(timerAllowlistTextarea.value);
-  
-  await saveTimerState({
-    focusDuration,
-    shortBreakDuration,
-    longBreakDuration,
-    longBreakInterval,
-    autoStartBreaks,
-    autoStartFocus,
-    notifications,
-    blockDuringFocus,
-    allowedDuringBreak,
-    timerBlocklist,
-    timerAllowlist
+    setFeedback('Focus session started!', 'success');
   });
-  
-  await updateTimerDisplay();
-  setFeedback('Timer settings saved!', 'success');
-});
 
-// Reset statistics
-resetStatsBtn.addEventListener('click', async () => {
-  if (confirm('Are you sure you want to reset all statistics?')) {
-    await resetStatistics();
-    await loadStatistics();
-    setFeedback('Statistics reset', 'info');
-  }
-});
+  timerPauseBtn.addEventListener('click', async () => {
+    await pauseTimer();
+    await updateTimerDisplay();
+    setFeedback('Timer paused', 'info');
+  });
 
-// Add zone button
-addZoneBtn.addEventListener('click', () => {
-  setActiveView('manage');
-  showZoneForm();
-});
+  timerResumeBtn.addEventListener('click', async () => {
+    await resumeTimer();
+    await updateTimerDisplay();
+    setFeedback('Timer resumed', 'success');
+  });
 
-// Cancel zone form
-cancelZoneBtn.addEventListener('click', () => {
-  hideZoneForm();
-});
-
-// Zone schedule enabled toggle
-zoneScheduleEnabledCheckbox.addEventListener('change', () => {
-  zoneScheduleSettings.style.display = zoneScheduleEnabledCheckbox.checked ? 'block' : 'none';
-});
-
-// Zone set current location
-zoneSetCurrentLocationBtn.addEventListener('click', () => {
-  zoneSetCurrentLocationBtn.textContent = 'Getting location...';
-  zoneSetCurrentLocationBtn.setAttribute('disabled', 'true');
-  
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const validation = validateCoordinates(lat, lon);
-      
-      zoneLatInput.value = String(lat);
-      zoneLonInput.value = String(lon);
-      
-      if (validation.error && !validation.valid) {
-        setFeedback(validation.error, 'error', 4000);
-      } else if (validation.error) {
-        setFeedback(validation.error, 'info', 5000);
-      } else {
-        setFeedback(`Location captured! (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`, 'success');
-      }
-      
-      console.log(`[Nodi] Zone location captured: lat=${lat}, lon=${lon}, accuracy=${pos.coords.accuracy}m`);
-      zoneSetCurrentLocationBtn.textContent = '📍 Set Current Location';
-      zoneSetCurrentLocationBtn.removeAttribute('disabled');
-    },
-    (err) => {
-      console.error('[Nodi] Geolocation error in zone:', err.code, err.message);
-      let errorMsg = 'Failed to get location';
-      
-      switch (err.code) {
-        case 1: // PERMISSION_DENIED
-          errorMsg = 'Location permission denied. Grant permission in browser settings to use GPS.';
-          break;
-        case 2: // POSITION_UNAVAILABLE
-          errorMsg = 'Location service unavailable. Please enable location services and try again.';
-          break;
-        case 3: // TIMEOUT
-          errorMsg = 'Location request timed out. Please check your connection and try again.';
-          break;
-      }
-      
-      setFeedback(errorMsg, 'error', 4000);
-      zoneSetCurrentLocationBtn.textContent = '📍 Set Current Location';
-      zoneSetCurrentLocationBtn.removeAttribute('disabled');
-    },
-    { timeout: 10000, enableHighAccuracy: false }
-  );
-});
-
-// Save zone
-saveZoneBtn.addEventListener('click', async () => {
-  const name = zoneNameInput.value.trim();
-  const lat = parseFloat(zoneLatInput.value);
-  const lon = parseFloat(zoneLonInput.value);
-  const radius = parseInt(zoneRadiusInput.value);
-  const blocklist = parseBlocklist(zoneBlocklistTextarea.value);
-  const allowlist = parseBlocklist(zoneAllowlistTextarea.value);
-  const color = zoneColorInput.value;
-  
-  if (!name) {
-    setFeedback('Please enter a zone name', 'error');
-    return;
-  }
-  
-  // Validate zone coordinates
-  const coordValidation = validateCoordinates(lat, lon);
-  if (!coordValidation.valid) {
-    setFeedback(coordValidation.error!, 'error');
-    return;
-  }
-  
-  if (isNaN(radius) || radius <= 0) {
-    setFeedback('Please enter a valid radius', 'error');
-    return;
-  }
-  
-  if (radius < 5) {
-    setFeedback('⚠️ Radius too small. GPS accuracy (±5-10m) may not support this.', 'info', 4000);
-  }
-  
-  if (blocklist.length === 0) {
-    setFeedback('Please add at least one domain to block', 'error');
-    return;
-  }
-  
-  const selectedDays: number[] = [];
-  const dayCheckboxes = zoneScheduleSettings.querySelectorAll('.day-checkbox input[type="checkbox"]');
-  dayCheckboxes.forEach((cb) => {
-    const checkbox = cb as HTMLInputElement;
-    if (checkbox.checked) {
-      selectedDays.push(Number(checkbox.value));
+  timerResetBtn.addEventListener('click', async () => {
+    if (confirm('Reset timer to idle?')) {
+      await resetTimer();
+      await updateTimerDisplay();
+      setFeedback('Timer reset', 'info');
     }
   });
-  
-  const timeSchedule = {
-    enabled: zoneScheduleEnabledCheckbox.checked,
-    startHour: Number(zoneStartHourInput.value),
-    startMinute: Number(zoneStartMinuteInput.value),
-    endHour: Number(zoneEndHourInput.value),
-    endMinute: Number(zoneEndMinuteInput.value),
-    days: selectedDays
-  };
-  
-  const zoneId = zoneFormId.value;
-  
-  if (zoneId) {
-    await updateZone(zoneId, {
-      name,
-      location: { lat, lon },
-      radius,
-      blocklist,
-      allowlist,
-      timeSchedule,
-      color
-    });
-    console.log(`[Nodi] Zone updated: ${name} at (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) with radius ${radius}m`);
-    setFeedback('Zone updated!', 'success');
-  } else {
-    await createZone({
-      name,
-      location: { lat, lon },
-      radius,
-      blocklist,
-      allowlist,
-      timeSchedule,
-      enabled: true,
-      color
-    });
-    console.log(`[Nodi] Zone created: ${name} at (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) with radius ${radius}m`);
-    setFeedback('Zone created!', 'success');
-  }
-  
-  hideZoneForm();
-  await renderZones();
-});
 
-// Set current position
-setCurrentPositionBtn.addEventListener('click', () => {
-  setCurrentPositionBtn.textContent = 'Getting location...';
-  setCurrentPositionBtn.setAttribute('disabled', 'true');
-  
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const accuracy = pos.coords.accuracy;
-      
-      const validation = validateCoordinates(lat, lon);
-      if (!validation.valid) {
-        setFeedback(validation.error!, 'error', 4000);
-        console.error(`[Nodi] Invalid coordinates: ${validation.error}`);
+  // Save timer config
+  saveTimerConfigBtn.addEventListener('click', async () => {
+    const focusDuration = Number(focusDurationInput.value) * 60;
+    const shortBreakDuration = Number(shortBreakInput.value) * 60;
+    const longBreakDuration = Number(longBreakInput.value) * 60;
+    const longBreakInterval = Number(longBreakIntervalInput.value);
+    const autoStartBreaks = timerAutoStartBreaksCheckbox.checked;
+    const autoStartFocus = timerAutoStartFocusCheckbox.checked;
+    const notifications = timerNotificationsCheckbox.checked;
+    const blockDuringFocus = timerBlockDuringFocusCheckbox.checked;
+    const allowedDuringBreak = timerAllowDuringBreakCheckbox.checked;
+    const timerBlocklist = parseBlocklist(timerBlocklistTextarea.value);
+    const timerAllowlist = parseBlocklist(timerAllowlistTextarea.value);
+
+    await saveTimerState({
+      focusDuration,
+      shortBreakDuration,
+      longBreakDuration,
+      longBreakInterval,
+      autoStartBreaks,
+      autoStartFocus,
+      notifications,
+      blockDuringFocus,
+      allowedDuringBreak,
+      timerBlocklist,
+      timerAllowlist
+    });
+
+    await updateTimerDisplay();
+    setFeedback('Timer settings saved!', 'success');
+  });
+
+  // Reset statistics
+  resetStatsBtn.addEventListener('click', async () => {
+    if (confirm('Are you sure you want to reset all statistics?')) {
+      await resetStatistics();
+      await loadStatistics();
+      setFeedback('Statistics reset', 'info');
+    }
+  });
+
+  // Add zone button
+  addZoneBtn.addEventListener('click', () => {
+    setActiveView('manage');
+    showZoneForm();
+  });
+
+  // Cancel zone form
+  cancelZoneBtn.addEventListener('click', () => {
+    hideZoneForm();
+  });
+
+  // Zone schedule enabled toggle
+  zoneScheduleEnabledCheckbox.addEventListener('change', () => {
+    zoneScheduleSettings.style.display = zoneScheduleEnabledCheckbox.checked ? 'block' : 'none';
+  });
+
+  // Zone set current location
+  zoneSetCurrentLocationBtn.addEventListener('click', () => {
+    zoneSetCurrentLocationBtn.textContent = 'Getting location...';
+    zoneSetCurrentLocationBtn.setAttribute('disabled', 'true');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const validation = validateCoordinates(lat, lon);
+
+        zoneLatInput.value = String(lat);
+        zoneLonInput.value = String(lon);
+
+        if (validation.error && !validation.valid) {
+          setFeedback(validation.error, 'error', 4000);
+        } else if (validation.error) {
+          setFeedback(validation.error, 'info', 5000);
+        } else {
+          setFeedback(`Location captured! (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`, 'success');
+        }
+
+        console.log(`[Nodi] Zone location captured: lat=${lat}, lon=${lon}, accuracy=${pos.coords.accuracy}m`);
+        zoneSetCurrentLocationBtn.textContent = '📍 Set Current Location';
+        zoneSetCurrentLocationBtn.removeAttribute('disabled');
+      },
+      (err) => {
+        console.error('[Nodi] Geolocation error in zone:', err.code, err.message);
+        let errorMsg = 'Failed to get location';
+
+        switch (err.code) {
+          case 1: // PERMISSION_DENIED
+            errorMsg = 'Location permission denied. Grant permission in browser settings to use GPS.';
+            break;
+          case 2: // POSITION_UNAVAILABLE
+            errorMsg = 'Location service unavailable. Please enable location services and try again.';
+            break;
+          case 3: // TIMEOUT
+            errorMsg = 'Location request timed out. Please check your connection and try again.';
+            break;
+        }
+
+        setFeedback(errorMsg, 'error', 4000);
+        zoneSetCurrentLocationBtn.textContent = '📍 Set Current Location';
+        zoneSetCurrentLocationBtn.removeAttribute('disabled');
+      },
+      { timeout: 10000, enableHighAccuracy: false }
+    );
+  });
+
+  // Save zone
+  saveZoneBtn.addEventListener('click', async () => {
+    const name = zoneNameInput.value.trim();
+    const lat = parseFloat(zoneLatInput.value);
+    const lon = parseFloat(zoneLonInput.value);
+    const radius = parseInt(zoneRadiusInput.value);
+    const blocklist = parseBlocklist(zoneBlocklistTextarea.value);
+    const allowlist = parseBlocklist(zoneAllowlistTextarea.value);
+    const color = zoneColorInput.value;
+
+    if (!name) {
+      setFeedback('Please enter a zone name', 'error');
+      return;
+    }
+
+    // Validate zone coordinates
+    const coordValidation = validateCoordinates(lat, lon);
+    if (!coordValidation.valid) {
+      setFeedback(coordValidation.error!, 'error');
+      return;
+    }
+
+    if (isNaN(radius) || radius <= 0) {
+      setFeedback('Please enter a valid radius', 'error');
+      return;
+    }
+
+    if (radius < 5) {
+      setFeedback('⚠️ Radius too small. GPS accuracy (±5-10m) may not support this.', 'info', 4000);
+    }
+
+    if (blocklist.length === 0) {
+      setFeedback('Please add at least one domain to block', 'error');
+      return;
+    }
+
+    const selectedDays: number[] = [];
+    const dayCheckboxes = zoneScheduleSettings.querySelectorAll('.day-checkbox input[type="checkbox"]');
+    dayCheckboxes.forEach((cb) => {
+      const checkbox = cb as HTMLInputElement;
+      if (checkbox.checked) {
+        selectedDays.push(Number(checkbox.value));
+      }
+    });
+
+    const timeSchedule = {
+      enabled: zoneScheduleEnabledCheckbox.checked,
+      startHour: Number(zoneStartHourInput.value),
+      startMinute: Number(zoneStartMinuteInput.value),
+      endHour: Number(zoneEndHourInput.value),
+      endMinute: Number(zoneEndMinuteInput.value),
+      days: selectedDays
+    };
+
+    const zoneId = zoneFormId.value;
+
+    if (zoneId) {
+      await updateZone(zoneId, {
+        name,
+        location: { lat, lon },
+        radius,
+        blocklist,
+        allowlist,
+        timeSchedule,
+        color
+      });
+      console.log(`[Nodi] Zone updated: ${name} at (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) with radius ${radius}m`);
+      setFeedback('Zone updated!', 'success');
+    } else {
+      await createZone({
+        name,
+        location: { lat, lon },
+        radius,
+        blocklist,
+        allowlist,
+        timeSchedule,
+        enabled: true,
+        color
+      });
+      console.log(`[Nodi] Zone created: ${name} at (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) with radius ${radius}m`);
+      setFeedback('Zone created!', 'success');
+    }
+
+    hideZoneForm();
+    await renderZones();
+  });
+
+  // Set current position
+  setCurrentPositionBtn.addEventListener('click', () => {
+    setCurrentPositionBtn.textContent = 'Getting location...';
+    setCurrentPositionBtn.setAttribute('disabled', 'true');
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const accuracy = pos.coords.accuracy;
+
+        const validation = validateCoordinates(lat, lon);
+        if (!validation.valid) {
+          setFeedback(validation.error!, 'error', 4000);
+          console.error(`[Nodi] Invalid coordinates: ${validation.error}`);
+          setCurrentPositionBtn.textContent = '📍 Update Current Position';
+          setCurrentPositionBtn.removeAttribute('disabled');
+          return;
+        }
+
+        await saveSettings({
+          currentPosition: { lat, lon }
+        });
+        await updateCurrentPositionDisplay();
+
+        let message = `Position updated! (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+        let feedbackType: 'success' | 'info' = 'success';
+
+        if (accuracy > 100) {
+          message += ` ⚠️ Accuracy: ${Math.round(accuracy)}m (GPS may be unreliable)`;
+          feedbackType = 'info';
+        } else if (accuracy > 50) {
+          message += ` • Accuracy: ±${Math.round(accuracy)}m`;
+        }
+
+        setFeedback(message, feedbackType, 4000);
+        console.log(`[Nodi] Current position updated: lat=${lat}, lon=${lon}, accuracy=${accuracy}m`);
         setCurrentPositionBtn.textContent = '📍 Update Current Position';
         setCurrentPositionBtn.removeAttribute('disabled');
-        return;
-      }
-      
-      await saveSettings({
-        currentPosition: { lat, lon }
-      });
-      await updateCurrentPositionDisplay();
-      
-      let message = `Position updated! (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
-      let feedbackType: 'success' | 'info' = 'success';
-      
-      if (accuracy > 100) {
-        message += ` ⚠️ Accuracy: ${Math.round(accuracy)}m (GPS may be unreliable)`;
-        feedbackType = 'info';
-      } else if (accuracy > 50) {
-        message += ` • Accuracy: ±${Math.round(accuracy)}m`;
-      }
-      
-      setFeedback(message, feedbackType, 4000);
-      console.log(`[Nodi] Current position updated: lat=${lat}, lon=${lon}, accuracy=${accuracy}m`);
-      setCurrentPositionBtn.textContent = '📍 Update Current Position';
-      setCurrentPositionBtn.removeAttribute('disabled');
-    },
-    (err) => {
-      console.error(`[Nodi] Geolocation error: code=${err.code}, message=${err.message}`);
-      let errorMsg = 'Failed to get location';
-      
-      switch (err.code) {
-        case 1: // PERMISSION_DENIED
-          errorMsg = 'Location permission denied. Grant permission in browser settings to use GPS.';
-          break;
-        case 2: // POSITION_UNAVAILABLE
-          errorMsg = 'Location service unavailable. Enable location services and try again.';
-          break;
-        case 3: // TIMEOUT
-          errorMsg = 'Location request timed out. Check connection and try again.';
-          break;
-      }
-      
-      setFeedback(errorMsg, 'error', 4000);
-      setCurrentPositionBtn.textContent = '📍 Update Current Position';
-      setCurrentPositionBtn.removeAttribute('disabled');
-    },
-    { timeout: 10000, enableHighAccuracy: false }
-  );
-});
+      },
+      (err) => {
+        console.error(`[Nodi] Geolocation error: code=${err.code}, message=${err.message}`);
+        let errorMsg = 'Failed to get location';
 
-// Set manual position
-setManualPositionBtn.addEventListener('click', async () => {
-  const lat = parseFloat(manualLatInput.value);
-  const lon = parseFloat(manualLonInput.value);
-  
-  const validation = validateCoordinates(lat, lon);
-  if (!validation.valid) {
-    setFeedback(validation.error!, 'error');
-    return;
-  }
-  
-  if (validation.error) {
-    setFeedback(validation.error, 'info', 5000);
-  }
-  
-  await saveSettings({
-    currentPosition: { lat, lon }
+        switch (err.code) {
+          case 1: // PERMISSION_DENIED
+            errorMsg = 'Location permission denied. Grant permission in browser settings to use GPS.';
+            break;
+          case 2: // POSITION_UNAVAILABLE
+            errorMsg = 'Location service unavailable. Enable location services and try again.';
+            break;
+          case 3: // TIMEOUT
+            errorMsg = 'Location request timed out. Check connection and try again.';
+            break;
+        }
+
+        setFeedback(errorMsg, 'error', 4000);
+        setCurrentPositionBtn.textContent = '📍 Update Current Position';
+        setCurrentPositionBtn.removeAttribute('disabled');
+      },
+      { timeout: 10000, enableHighAccuracy: false }
+    );
   });
-  
-  await updateCurrentPositionDisplay();
-  setFeedback('Position set manually!', 'success');
-  console.log(`[Nodi] Manual position set: lat=${lat}, lon=${lon}`);
-  manualLatInput.value = '';
-  manualLonInput.value = '';
-});
 
-// Monitoring enabled toggle
-monitoringEnabledCheckbox.addEventListener('change', async () => {
-  await saveSettings({
-    monitoring: monitoringEnabledCheckbox.checked,
-    snoozeUntil: monitoringEnabledCheckbox.checked ? null : undefined,
-    disabledUntil: monitoringEnabledCheckbox.checked ? null : undefined
+  // Set manual position
+  setManualPositionBtn.addEventListener('click', async () => {
+    const lat = parseFloat(manualLatInput.value);
+    const lon = parseFloat(manualLonInput.value);
+
+    const validation = validateCoordinates(lat, lon);
+    if (!validation.valid) {
+      setFeedback(validation.error!, 'error');
+      return;
+    }
+
+    if (validation.error) {
+      setFeedback(validation.error, 'info', 5000);
+    }
+
+    await saveSettings({
+      currentPosition: { lat, lon }
+    });
+
+    await updateCurrentPositionDisplay();
+    setFeedback('Position set manually!', 'success');
+    console.log(`[Nodi] Manual position set: lat=${lat}, lon=${lon}`);
+    manualLatInput.value = '';
+    manualLonInput.value = '';
   });
-  await updateStatusDisplay();
-  setFeedback(monitoringEnabledCheckbox.checked ? 'Monitoring enabled' : 'Monitoring disabled', 'info');
-});
 
-// Quick actions
-quickMonitoringToggleBtn.addEventListener('click', async () => {
-  const settings = await getSettings();
-  const next = !isMonitoringActive(settings);
-  await saveSettings({ monitoring: next, snoozeUntil: null, disabledUntil: null });
-  await updateStatusDisplay();
-  setFeedback(next ? 'Monitoring enabled' : 'Monitoring disabled', 'info');
-});
+  // Monitoring enabled toggle
+  monitoringEnabledCheckbox.addEventListener('change', async () => {
+    await saveSettings({
+      monitoring: monitoringEnabledCheckbox.checked,
+      snoozeUntil: monitoringEnabledCheckbox.checked ? null : undefined,
+      disabledUntil: monitoringEnabledCheckbox.checked ? null : undefined
+    });
+    await updateStatusDisplay();
+    setFeedback(monitoringEnabledCheckbox.checked ? 'Monitoring enabled' : 'Monitoring disabled', 'info');
+  });
 
-snooze10Btn.addEventListener('click', async () => {
-  await setSnooze(10);
-});
+  // Quick actions
+  quickMonitoringToggleBtn.addEventListener('click', async () => {
+    const settings = await getSettings();
+    const next = !isMonitoringActive(settings);
+    await saveSettings({ monitoring: next, snoozeUntil: null, disabledUntil: null });
+    await updateStatusDisplay();
+    setFeedback(next ? 'Monitoring enabled' : 'Monitoring disabled', 'info');
+  });
 
-snooze30Btn.addEventListener('click', async () => {
-  await setSnooze(30);
-});
+  snooze10Btn.addEventListener('click', async () => {
+    await setSnooze(10);
+  });
 
-snooze60Btn.addEventListener('click', async () => {
-  await setSnooze(60);
-});
+  snooze30Btn.addEventListener('click', async () => {
+    await setSnooze(30);
+  });
 
-disableTodayBtn.addEventListener('click', async () => {
-  await disableForToday();
-});
+  snooze60Btn.addEventListener('click', async () => {
+    await setSnooze(60);
+  });
 
-clearSnoozeBtn.addEventListener('click', async () => {
-  await saveSettings({ snoozeUntil: null, disabledUntil: null, monitoring: true });
-  await updateStatusDisplay();
-  setFeedback('Monitoring resumed', 'success');
-});
+  disableTodayBtn.addEventListener('click', async () => {
+    await disableForToday();
+  });
+
+  clearSnoozeBtn.addEventListener('click', async () => {
+    await saveSettings({ snoozeUntil: null, disabledUntil: null, monitoring: true });
+    await updateStatusDisplay();
+    setFeedback('Monitoring resumed', 'success');
+  });
 }
 
 // ============================================
@@ -923,15 +899,15 @@ clearSnoozeBtn.addEventListener('click', async () => {
 
 async function init() {
   console.log('[Nodi] Popup init() called');
-  
+
   // Initialize DOM element references first
   initDOMElements();
-  
+
   // Attach all event listeners
   attachEventListeners();
 
   setActiveView('home');
-  
+
   await loadTheme();
   await updateTimerDisplay();
   await loadTimerConfig();
