@@ -1,294 +1,198 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Nodi</title>
-    <link rel="stylesheet" href="popup.css" />
-    <!-- Preconnect to Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="terminal-window">
-      <header class="terminal-header">
-        <div class="brand">
-          <span class="prompt">></span>
-          <h1>NODI_SYSTEM</h1>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nodi</title>
+  <link rel="stylesheet" href="popup.css" />
+  <!-- Preconnect to Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div class="terminal-window">
+    <header class="terminal-header">
+      <div class="brand">
+        <span class="prompt">></span>
+        <h1>NODI_SYSTEM</h1>
+      </div>
+      <div class="system-status">
+        <span id="status-text">STATUS: IDLE</span>
+        <div id="status-indicator" class="blink"></div>
+      </div>
+    </header>
+
+    <nav class="terminal-nav">
+      <button id="view-home-tab" class="nav-item active" data-target="view-home">
+        [ HOME ]
+      </button>
+      <button id="view-manage-tab" class="nav-item" data-target="view-manage">
+        [ MANAGE ]
+      </button>
+    </nav>
+
+    <main class="terminal-content">
+      <!-- HOME VIEW -->
+      <section id="view-home" class="view-panel active">
+
+        <!-- POMODORO MODULE -->
+        <div class="module timer-module">
+          <div class="module-header">
+            <span class="module-title">:: PROCESS_TIMER ::</span>
+            <span id="timer-state-badge" class="badge">WAITING</span>
+          </div>
+
+          <div class="timer-display-area">
+            <div id="timer-time" class="xxl-text">25:00</div>
+            <div class="timer-meta">
+              <span>SESSION: <span id="timer-session">0</span></span>
+            </div>
+            <div class="progress-track">
+              <div id="timer-progress-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="control-grid">
+            <button id="timer-start" class="btn btn-primary">EXECUTE_FOCUS</button>
+            <button id="timer-pause" class="btn btn-warning" style="display: none;">PAUSE_PROCESS</button>
+            <button id="timer-resume" class="btn btn-primary" style="display: none;">RESUME_PROCESS</button>
+            <button id="timer-reset" class="btn btn-danger">RESET</button>
+          </div>
+
+          <!-- Simplified Config: No options, just standard behavior implicit -->
+          <div class="timer-info-footer">
+            <span class="muted-text">STD_MODE: 25m FOCUS / 5m BREAK</span>
+          </div>
         </div>
-        <div class="system-status">
-          <span id="status-text">STATUS: IDLE</span>
-          <div id="status-indicator" class="blink"></div>
+
+        <!-- SYSTEM STATUS MODULE -->
+        <div class="module status-module">
+          <div class="module-header">
+            <span class="module-title">:: SYSTEM_CONTROL ::</span>
+          </div>
+
+          <div class="action-grid-sm">
+            <button id="quick-monitoring-toggle" class="btn">TOGGLE_MONITOR</button>
+            <button id="unlock-15" class="btn btn-warning">UNLOCK_15M</button>
+          </div>
         </div>
-      </header>
 
-      <nav class="terminal-nav">
-        <button id="view-home-tab" class="nav-item active" data-target="view-home">
-          [ HOME ]
-        </button>
-        <button id="view-manage-tab" class="nav-item" data-target="view-manage">
-          [ MANAGE ]
-        </button>
-      </nav>
+      </section>
 
-      <main class="terminal-content">
-        <!-- HOME VIEW -->
-        <section id="view-home" class="view-panel active">
-          
-          <!-- POMODORO MODULE -->
-          <div class="module timer-module">
-            <div class="module-header">
-              <span class="module-title">:: PROCESS_TIMER ::</span>
-              <span id="timer-state-badge" class="badge">WAITING</span>
-            </div>
-            
-            <div class="timer-display-area">
-              <div id="timer-time" class="xxl-text">25:00</div>
-              <div class="timer-meta">
-                <span>SESSION: <span id="timer-session">0</span></span>
-              </div>
-              <div class="progress-track">
-                <div id="timer-progress-bar" class="progress-fill" style="width: 0%"></div>
-              </div>
-            </div>
+      <!-- MANAGE VIEW -->
+      <section id="view-manage" class="view-panel">
 
-            <div class="control-grid">
-              <button id="timer-start" class="btn btn-primary">EXECUTE_FOCUS</button>
-              <button id="timer-pause" class="btn btn-warning" style="display: none;">PAUSE_PROCESS</button>
-              <button id="timer-resume" class="btn btn-primary" style="display: none;">RESUME_PROCESS</button>
-              <button id="timer-reset" class="btn btn-danger">RESET</button>
-            </div>
-
-            <details class="config-details">
-              <summary>> CONFIGURE_PARAMETERS</summary>
-              <div class="config-panel">
-                <div class="input-group">
-                  <label for="focus-duration">FOCUS_MIN</label>
-                  <input type="number" id="focus-duration" value="25" min="1" max="60">
-                </div>
-                <div class="input-group">
-                  <label for="short-break">S_BREAK_MIN</label>
-                  <input type="number" id="short-break" value="5" min="1" max="30">
-                </div>
-                <div class="input-group">
-                  <label for="long-break">L_BREAK_MIN</label>
-                  <input type="number" id="long-break" value="15" min="1" max="60">
-                </div>
-                <div class="input-group">
-                  <label for="long-break-interval">SESSION_INTERVAL</label>
-                  <input type="number" id="long-break-interval" value="4" min="1" max="10">
-                </div>
-                
-                <div class="boolean-flags">
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" id="timer-auto-start-breaks">
-                    <span class="checkmark">[ ]</span> AUTO_START_BREAK
-                  </label>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" id="timer-auto-start-focus">
-                    <span class="checkmark">[ ]</span> AUTO_START_FOCUS
-                  </label>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" id="timer-notifications" checked>
-                    <span class="checkmark">[x]</span> NOTIFICATIONS
-                  </label>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" id="timer-block-during-focus" checked>
-                    <span class="checkmark">[x]</span> BLOCK_ON_FOCUS
-                  </label>
-                </div>
-                
-                <button id="save-timer-config" class="btn full-width">SAVE_CONFIG</button>
-              </div>
-            </details>
+        <div class="module zones-module">
+          <div class="module-header">
+            <span class="module-title">:: ZONE_MATRIX ::</span>
+            <button id="add-zone" class="btn-text">[ + NEW_ZONE ]</button>
           </div>
 
-          <!-- SYSTEM STATUS MODULE -->
-          <div class="module status-module">
-            <div class="module-header">
-              <span class="module-title">:: SYSTEM_CONTROL ::</span>
-            </div>
-            <div class="status-readout">
-              <div class="log-line">> CURRENT_STATE: <span id="status-detail">IDLE</span></div>
-            </div>
-            
-            <div class="action-grid-sm">
-              <button id="quick-monitoring-toggle" class="btn">TOGGLE_MONITOR</button>
-              <button id="clear-snooze" class="btn">FORCE_RESUME</button>
-            </div>
-            
-            <details class="config-details">
-              <summary>> OVERRIDE_COMMANDS</summary>
-              <div class="action-grid-xs">
-                <button id="snooze-10" class="btn-sm">SNOOZE_10</button>
-                <button id="snooze-30" class="btn-sm">SNOOZE_30</button>
-                <button id="snooze-60" class="btn-sm">SNOOZE_60</button>
-                <button id="disable-today" class="btn-sm">DISABLE_24H</button>
-              </div>
-            </details>
+          <div id="zones-list" class="zones-container">
+            <!-- Zones injected here -->
+            <div class="terminal-msg">No zones configured. Initiating...</div>
           </div>
 
-        </section>
-
-        <!-- MANAGE VIEW -->
-        <section id="view-manage" class="view-panel">
-          
-          <div class="module zones-module">
-            <div class="module-header">
-              <span class="module-title">:: ZONE_MATRIX ::</span>
-              <button id="add-zone" class="btn-text">[ + NEW_ZONE ]</button>
+          <!-- ADD/EDIT FORM -->
+          <div id="zone-form" class="overlay-form" style="display: none;">
+            <div class="form-header">
+              <h3>>> ZONE_EDITOR</h3>
             </div>
+            <input type="hidden" id="zone-form-id" />
 
-            <div id="zones-list" class="zones-container">
-              <!-- Zones injected here -->
-              <div class="terminal-msg">No zones configured. Initiating...</div>
-            </div>
-            
-            <!-- ADD/EDIT FORM -->
-            <div id="zone-form" class="overlay-form" style="display: none;">
-              <div class="form-header">
-                <h3>>> ZONE_EDITOR</h3>
+            <div class="form-body">
+              <div class="input-group">
+                <label>ZONE_ID</label>
+                <input type="text" id="zone-name" placeholder="OFFICE_MAIN">
               </div>
-              <input type="hidden" id="zone-form-id" />
-              
-              <div class="form-body">
-                <div class="input-group">
-                  <label>ZONE_ID</label>
-                  <input type="text" id="zone-name" placeholder="OFFICE_MAIN">
-                </div>
-                
-                <div class="input-group">
-                  <label>COORDINATES</label>
-                  <div class="row">
-                    <input type="number" id="zone-lat" placeholder="LAT" step="0.0001">
-                    <input type="number" id="zone-lon" placeholder="LON" step="0.0001">
-                  </div>
-                  <button id="zone-set-current-location" class="btn-sm mt-2">GET_GPS_DATA</button>
-                </div>
 
-                <div class="input-group">
-                  <label>RADIUS_METERS</label>
-                  <input type="number" id="zone-radius" value="50">
+              <div class="input-group">
+                <label>COORDINATES</label>
+                <div class="row">
+                  <input type="number" id="zone-lat" placeholder="LAT" step="0.0001">
+                  <input type="number" id="zone-lon" placeholder="LON" step="0.0001">
                 </div>
+                <button id="zone-set-current-location" class="btn-sm mt-2">GET_GPS_DATA</button>
+              </div>
 
-                <div class="input-group">
-                  <label>BLOCK_LIST</label>
-                  <textarea id="zone-blocklist" rows="3" placeholder="youtube.com, facebook.com"></textarea>
-                </div>
+              <div class="input-group">
+                <label>RADIUS_METERS</label>
+                <input type="number" id="zone-radius" value="50">
+              </div>
 
-                <div class="input-group">
-                  <label>ALLOW_LIST</label>
-                  <textarea id="zone-allowlist" rows="2" placeholder="work.com"></textarea>
-                </div>
-                
-                <div class="boolean-flags">
-                   <label class="checkbox-wrapper">
-                      <input type="checkbox" id="zone-schedule-enabled" />
-                      <span class="checkmark">[ ]</span> ENABLE_SCHEDULE
-                   </label>
-                </div>
+              <div class="input-group">
+                <label>BLOCK_LIST</label>
+                <textarea id="zone-blocklist" rows="3" placeholder="youtube.com, facebook.com"></textarea>
+              </div>
 
-                <!-- Schedule Sub-module -->
-                <div id="zone-schedule-settings" class="schedule-box" style="display: none;">
-                    <div class="input-group">
-                        <label>TIME_WINDOW</label>
-                        <div class="time-range">
-                            <input type="number" id="zone-start-hour" value="09"><span class="sep">:</span><input type="number" id="zone-start-minute" value="00">
-                            <span class="to">TO</span>
-                            <input type="number" id="zone-end-hour" value="17"><span class="sep">:</span><input type="number" id="zone-end-minute" value="00">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                      <label>ACTIVE_DAYS</label>
-                      <div class="days-selector">
-                        <!-- Days injected dynamically or reused logic -->
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="1" checked> <span>M</span>
-                        </div>
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="2" checked> <span>T</span>
-                        </div>
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="3" checked> <span>W</span>
-                        </div>
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="4" checked> <span>T</span>
-                        </div>
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="5" checked> <span>F</span>
-                        </div>
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="6"> <span>S</span>
-                        </div>
-                        <div class="day-checkbox">
-                           <input type="checkbox" value="0"> <span>S</span>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-                
-                 <div class="input-group">
-                    <label>ZONE_COLOR</label>
-                    <input type="color" id="zone-color" value="#5b9ff5">
-                 </div>
+              <div class="input-group">
+                <label>ALLOW_LIST</label>
+                <textarea id="zone-allowlist" rows="2" placeholder="work.com"></textarea>
+              </div>
 
-                <div class="form-actions">
-                  <button id="save-zone" class="btn btn-primary">COMMIT</button>
-                  <button id="cancel-zone" class="btn btn-danger">ABORT</button>
-                </div>
+              <div class="boolean-flags">
+                <label class="checkbox-wrapper">
+                  <input type="checkbox" id="zone-work-hours" />
+                  <span class="checkmark">[ ]</span> WORK_HOURS_ONLY (09:00-17:00, Mon-Fri)
+                </label>
+              </div>
+
+              <div class="input-group">
+                <label>ZONE_COLOR</label>
+                <input type="color" id="zone-color" value="#5b9ff5">
+              </div>
+
+              <div class="form-actions">
+                <button id="save-zone" class="btn btn-primary">COMMIT</button>
+                <button id="cancel-zone" class="btn btn-danger">ABORT</button>
               </div>
             </div>
           </div>
-          
-          <div class="module stats-module" id="stats-section" style="display: none;">
-             <div class="module-header">
-                <span class="module-title">:: METRICS_LOG ::</span>
-             </div>
-             <div class="stats-text">
-                <div>> BLOCKED_HITS: <span id="stat-blocked-count">0</span></div>
-                <div>> SESSIONS: <span id="stat-timer-sessions">0</span></div>
-                <div>> TOP_TARGET: <span id="stat-top-site">NULL</span></div>
-             </div>
-             <div class="module-footer">
-                <button id="reset-stats" class="btn-text">[ FLUSH_LOGS ]</button>
-             </div>
+        </div>
+
+        <div class="module stats-module" id="stats-section" style="display: none;">
+          <div class="module-header">
+            <span class="module-title">:: METRICS_LOG ::</span>
           </div>
-
-          <div class="module settings-module">
-              <div class="module-header">
-                <span class="module-title">:: DEBUG_GPS ::</span>
-              </div>
-              <div class="debug-controls">
-                 <button id="set-current-position" class="btn-sm">UPDATE_POS</button>
-                 <div class="log-line">LOC: <span id="current-position-display">UNKNOWN</span></div>
-              </div>
-              <div class="manual-gps row mt-2">
-                 <input type="number" id="manual-lat" placeholder="LAT">
-                 <input type="number" id="manual-lon" placeholder="LON">
-                 <button id="set-manual-position" class="btn-sm">SET</button>
-              </div>
-              <div class="boolean-flags mt-2">
-                 <label class="checkbox-wrapper">
-                    <input type="checkbox" id="monitoring-enabled" checked>
-                    <span class="checkmark">[x]</span> MONITORING_ACTIVE
-                 </label>
-              </div>
-              <div id="feedback" class="console-output"></div>
+          <div class="stats-text">
+            <div>> SESSIONS_COMPLETED: <span id="stat-timer-sessions">0</span></div>
           </div>
+          <div class="module-footer">
+            <button id="reset-stats" class="btn-text">[ FLUSH_LOGS ]</button>
+          </div>
+        </div>
 
-        </section>
-      </main>
+        <div class="module settings-module">
+          <div class="module-header">
+            <span class="module-title">:: DEBUG_GPS ::</span>
+          </div>
+          <div class="debug-controls">
+            <button id="set-current-position" class="btn-sm">UPDATE_POS</button>
+            <div class="log-line">LOC: <span id="current-position-display">UNKNOWN</span></div>
+          </div>
+          <div class="boolean-flags mt-2">
+            <label class="checkbox-wrapper">
+              <input type="checkbox" id="monitoring-enabled" checked>
+              <span class="checkmark">[x]</span> MONITORING_ACTIVE
+            </label>
+          </div>
+          <div id="feedback" class="console-output"></div>
+        </div>
 
-      <footer class="terminal-footer">
-        <span>NODI v2.0 // SYSTEM_READY</span>
-      </footer>
-    </div>
-    
-    <!-- Scripts -->
-    <script src="../dist/popup.js"></script>
-  </body>
+      </section>
+    </main>
+
+    <footer class="terminal-footer">
+      <span>NODI v2.1 // MINIMAL_CORE</span>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../dist/popup.js"></script>
+</body>
+
 </html>
