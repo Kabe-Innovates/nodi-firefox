@@ -592,3 +592,74 @@ textarea:focus {
   display: none;
   /* Replaced by #status-indicator */
 }
+
+/* ============================================
+   ADDITIONAL STYLES
+   ============================================ */
+
+/* Form body layout */
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Coordinate inputs - ensure they share space */
+.input-group .row input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Textarea full width */
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 50px;
+}
+
+/* Color input styling */
+input[type="color"] {
+  width: 50px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Zone info text truncation */
+.zone-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.zone-info div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Timer info footer */
+.timer-info-footer {
+  text-align: center;
+  padding-top: var(--space-sm);
+  border-top: 1px dashed var(--border-color);
+}
+
+.muted-text {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+/* Debug controls layout */
+.debug-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Stats text wrapping */
+.stats-text {
+  word-break: break-word;
+}

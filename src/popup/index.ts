@@ -71,7 +71,7 @@ let currentPositionDisplay: HTMLElement;
 let monitoringEnabledCheckbox: HTMLInputElement;
 let quickMonitoringToggleBtn: HTMLElement;
 let snooze15Btn: HTMLElement; // Replaces multiple snooze buttons
-let clearSnoozeBtn: HTMLElement; // aka Force Resume
+let clearSnoozeBtn: HTMLElement | null; // aka Force Resume (optional)
 
 let feedbackElement: HTMLElement;
 let viewHomeTab: HTMLElement;
@@ -122,7 +122,7 @@ function initDOMElements() {
   monitoringEnabledCheckbox = document.getElementById('monitoring-enabled') as HTMLInputElement;
   quickMonitoringToggleBtn = document.getElementById('quick-monitoring-toggle')!;
   snooze15Btn = document.getElementById('unlock-15')!;
-  clearSnoozeBtn = document.getElementById('clear-snooze')!;
+  clearSnoozeBtn = document.getElementById('clear-snooze') as HTMLElement | null;
 
   feedbackElement = document.getElementById('feedback')!;
   viewHomeTab = document.getElementById('view-home-tab')!;
@@ -222,11 +222,12 @@ async function setSnooze(minutes: number) {
 // TIMER FUNCTIONS
 // ============================================
 
-let timerUpdateInterval: ReturnType<typeof setInterval> | null = null;
+let timerLoopRunning = false;
+let lastTimerUpdateTime = 0;
 
-async function updateTimerDisplay() {
-  const timer = await getTimerState();
-  const remaining = calculateRemainingTime(timer);
+async function updateTimerDisplay(timerState?: PomodoroTimer, remainingSeconds?: number) {
+  const timer = timerState || await getTimerState();
+  const remaining = remainingSeconds !== undefined ? remainingSeconds : calculateRemainingTime(timer);
 
   timerTimeDisplay.textContent = formatTime(remaining);
   timerSessionDisplay.textContent = `${timer.currentSession}`;
@@ -259,27 +260,82 @@ async function updateTimerDisplay() {
   }
 }
 
-function startTimerUpdateLoop() {
-  if (timerUpdateInterval) return;
+// Cache timer state to avoid async read on every frame
+let cachedTimerState: PomodoroTimer | null = null;
+let cacheExpiry = 0;
 
+async function getCachedTimerState(): Promise<PomodoroTimer> {
+  const now = Date.now();
+  if (!cachedTimerState || now > cacheExpiry) {
+    cachedTimerState = await getTimerState();
+    cacheExpiry = now + 500; // Refresh cache every 500ms
+  }
+  return cachedTimerState;
+}
+
+function invalidateTimerCache() {
+  cachedTimerState = null;
+  cacheExpiry = 0;
+}
+
+function runTimerLoop(timestamp: number) {
+  if (!timerLoopRunning) return;
+
+  const now = Date.now();
+
+  // Update display every second (or on first run)
+  if (now - lastTimerUpdateTime >= 1000 || lastTimerUpdateTime === 0) {
+    lastTimerUpdateTime = now;
+
+    getCachedTimerState().then(timer => {
+      const remaining = calculateRemainingTime(timer);
+
+      // Check for session completion
+      if (remaining <= 0 && timer.state !== 'idle' && timer.state !== 'paused') {
+        completeTimerSession().then(() => {
+          invalidateTimerCache();
+          updateTimerDisplay();
+        });
+      } else {
+        // Direct DOM update for speed - avoid async in the hot path
+        timerTimeDisplay.textContent = formatTime(remaining);
+
+        let duration: number;
+        switch (timer.state) {
+          case 'focus': duration = timer.focusDuration; break;
+          case 'short-break': duration = timer.shortBreakDuration; break;
+          case 'long-break': duration = timer.longBreakDuration; break;
+          default: duration = timer.focusDuration;
+        }
+        const progress = timer.state === 'idle' ? 0 : ((duration - remaining) / duration) * 100;
+        timerProgressBar.style.width = `${progress}%`;
+      }
+    }).catch(err => {
+      console.error('[Nodi] Timer loop error:', err);
+    });
+  }
+
+  // Continue the loop
+  if (timerLoopRunning) {
+    requestAnimationFrame(runTimerLoop);
+  }
+}
+
+function startTimerUpdateLoop() {
+  if (timerLoopRunning) return;
+  timerLoopRunning = true;
+  lastTimerUpdateTime = 0; // Force immediate update
+
+  // Initial full display update
   updateTimerDisplay().catch(err => console.error('[Nodi] Timer display error:', err));
 
-  timerUpdateInterval = setInterval(async () => {
-    const timer = await getTimerState();
-    const remaining = calculateRemainingTime(timer);
-
-    if (remaining <= 0 && timer.state !== 'idle' && timer.state !== 'paused') {
-      await completeTimerSession();
-    }
-    await updateTimerDisplay();
-  }, 1000);
+  // Start the animation frame loop
+  requestAnimationFrame(runTimerLoop);
 }
 
 function stopTimerUpdateLoop() {
-  if (timerUpdateInterval) {
-    clearInterval(timerUpdateInterval);
-    timerUpdateInterval = null;
-  }
+  timerLoopRunning = false;
+  cachedTimerState = null;
 }
 
 // Config removed - standard Pomo is assumed.
@@ -427,21 +483,25 @@ function attachEventListeners() {
   // Timer controls
   timerStartBtn.addEventListener('click', async () => {
     await startTimer('focus');
+    invalidateTimerCache();
     await updateTimerDisplay();
   });
 
   timerPauseBtn.addEventListener('click', async () => {
     await pauseTimer();
+    invalidateTimerCache();
     await updateTimerDisplay();
   });
 
   timerResumeBtn.addEventListener('click', async () => {
     await resumeTimer();
+    invalidateTimerCache();
     await updateTimerDisplay();
   });
 
   timerResetBtn.addEventListener('click', async () => {
     await resetTimer();
+    invalidateTimerCache();
     await updateTimerDisplay();
   });
 
@@ -582,7 +642,9 @@ function attachEventListeners() {
 
   // Unlocks
   snooze15Btn.addEventListener('click', () => setSnooze(15));
-  clearSnoozeBtn.addEventListener('click', () => setSnooze(0));
+  if (clearSnoozeBtn) {
+    clearSnoozeBtn.addEventListener('click', () => setSnooze(0));
+  }
 }
 
 // ============================================
