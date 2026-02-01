@@ -550,9 +550,6 @@ export async function pauseTimer(): Promise<void> {
 /**
  * Resume the timer from paused state
  */
-/**
- * Resume the timer from paused state
- */
 export async function resumeTimer(): Promise<void> {
   const timer = await getTimerState();
   if (timer.state !== 'paused') return;

@@ -2,7 +2,7 @@
 /no-di/ • *noun* • Tamil for "moment" or "second."
 
 **A location-based website blocker for Firefox.**
-Block distracting sites instantly when you enter your designated focus zones.ter your designated focus zones.
+Block distracting sites instantly when you enter your designated focus zones.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Firefox](https://img.shields.io/badge/Firefox-109%2B-orange.svg)](https://www.mozilla.org/firefox/)
