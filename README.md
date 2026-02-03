@@ -29,23 +29,7 @@ Load in Firefox:
 3. Select `manifest.json`
 
 ## Usage
-
-### Set up a zone
-1. Click the extension icon
-2. Set your current location as a zone
-3. Configure radius (default: 50m)
-4. Add domains to block
-
-### Configure timer
-1. Open timer settings
-2. Set focus/break durations
-3. Add domains to block during focus
-4. Enable auto-start preferences
-
-### Quick actions
-- **Snooze** — Pause monitoring for 10, 30, or 60 minutes
-- **Disable for today** — Turn off until midnight
-- **Resume** — Reactivate monitoring immediately
+> Yet to be updated
 
 ## Architecture
 
@@ -64,10 +48,6 @@ dist/               # Compiled output (generated)
 
 **Tech stack:** TypeScript, Webpack 5, Firefox WebExtensions API
 
-**Key algorithms:**
-- Haversine formula for distance calculation
-- `browser.webRequest.onBeforeRequest` for blocking
-- `browser.storage.local` for persistence
 
 ## Documentation
 
