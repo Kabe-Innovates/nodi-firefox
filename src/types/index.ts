@@ -32,7 +32,7 @@ export interface PomodoroTimer {
   shortBreakDuration: number; // In seconds (default: 300 = 5 min)
   longBreakDuration: number; // In seconds (default: 900 = 15 min)
   longBreakInterval: number; // After how many focus sessions (default: 4)
-  
+
   // Runtime state
   state: TimerState;
   currentSession: number; // Which session number (1, 2, 3, 4...)
@@ -40,13 +40,14 @@ export interface PomodoroTimer {
   remainingSeconds: number; // Time remaining in current session
   startedAt: number | null; // Timestamp when timer started
   pausedAt: number | null; // Timestamp when timer paused
-  
+  previousState: TimerState | null; // State before pausing (to restore on resume)
+
   // Settings
   autoStartBreaks: boolean; // Auto-start breaks after focus
   autoStartFocus: boolean; // Auto-start focus after break
   notifications: boolean; // Show browser notifications
   soundEnabled: boolean; // Play completion sound
-  
+
   // Block behavior
   blockDuringFocus: boolean; // Enable blocking during focus sessions
   allowedDuringBreak: boolean; // Disable blocking during breaks
@@ -62,7 +63,7 @@ export interface ExtensionSettings {
   snoozeUntil?: number | null; // Timestamp when snooze expires
   disabledUntil?: number | null; // Timestamp when disabled state expires
   theme?: 'system' | 'light' | 'dark'; // User's theme preference (default: 'system')
-  
+
   // Legacy fields for migration (will be removed after migration)
   zone?: GeoLocation | null;
   radius?: number;

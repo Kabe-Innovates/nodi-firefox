@@ -143,7 +143,13 @@ export function isWithinSchedule(schedule: TimeSchedule): boolean {
   const startTime = schedule.startHour * 60 + schedule.startMinute;
   const endTime = schedule.endHour * 60 + schedule.endMinute;
 
-  return currentTime >= startTime && currentTime <= endTime;
+  if (endTime >= startTime) {
+    // Normal schedule (e.g. 09:00 - 17:00)
+    return currentTime >= startTime && currentTime <= endTime;
+  } else {
+    // Overnight schedule (e.g. 22:00 - 06:00)
+    return currentTime >= startTime || currentTime <= endTime;
+  }
 }
 
 /**
@@ -163,6 +169,7 @@ export function getDefaultTimer(): PomodoroTimer {
     longBreakDuration: 900, // 15 minutes
     longBreakInterval: 4,
     state: 'idle',
+    previousState: null,
     currentSession: 0,
     elapsedSeconds: 0,
     remainingSeconds: 1500,
@@ -260,6 +267,14 @@ export async function getSettings(): Promise<ExtensionSettings> {
 
   if (snoozeExpired) data.snoozeUntil = null;
   if (disabledExpired) data.disabledUntil = null;
+
+  // Persist the cleanup so stale timestamps don't linger in storage
+  if (snoozeExpired || disabledExpired) {
+    await browser.storage.local.set({
+      snoozeUntil: data.snoozeUntil,
+      disabledUntil: data.disabledUntil
+    });
+  }
 
   return {
     zones: Array.isArray(data.zones) ? data.zones.map((z: Zone) => ({ ...z, allowlist: z.allowlist || [] })) : [],
@@ -525,6 +540,7 @@ export async function startTimer(state: TimerState = 'focus'): Promise<void> {
 
   await saveTimerState({
     state,
+    previousState: null,
     startedAt: Date.now(),
     pausedAt: null,
     elapsedSeconds: 0,
@@ -542,6 +558,7 @@ export async function pauseTimer(): Promise<void> {
 
   await saveTimerState({
     state: 'paused',
+    previousState: timer.state, // Save the active state so resume can restore it
     pausedAt: Date.now(),
     remainingSeconds: remaining
   });
@@ -554,38 +571,22 @@ export async function resumeTimer(): Promise<void> {
   const timer = await getTimerState();
   if (timer.state !== 'paused') return;
 
-  // Determine total duration for the target state (defaulting to focus)
-  const targetState = 'focus'; // Simplified resumption
-  let duration = timer.focusDuration;
-  if (timer.currentSession % timer.longBreakInterval === 0 && timer.remainingSeconds > timer.shortBreakDuration) {
-    // Heuristic: if we have lots of time left and it's break time? 
-    // For simplicity in this logic, we use the remainingSeconds to back-calculate.
+  // Restore the state that was active before pausing
+  const targetState = timer.previousState || 'focus';
+
+  let duration: number;
+  switch (targetState) {
+    case 'short-break': duration = timer.shortBreakDuration; break;
+    case 'long-break': duration = timer.longBreakDuration; break;
+    default: duration = timer.focusDuration;
   }
 
-  // Robust Resume:
-  // We know 'remainingSeconds' is correct (saved at pause).
-  // We need to set 'startedAt' such that: duration - (now - startedAt) = remainingSeconds
-  // => now - startedAt = duration - remainingSeconds
-  // => startedAt = now - (duration - remainingSeconds)
-
-  // Wait, we need to know WHICH duration we are in.
-  // The 'timer' object should have saved the 'state' before pause? 
-  // No, valid question. 'state' is 'paused'.
-  // But we don't store 'previousState'.
-  // However, we can assume 'focus' for this simple implementation or we rely on 'remainingSeconds' is enough?
-  // calculateRemainingTime uses 'duration' based on CURRENT state.
-  // So we must switch state back to 'focus' (or break).
-  // In `pauseTimer`, we just set state='paused'.
-
-  // FIX: We need to assume the duration based on what feels right? 
-  // Better: startTimer should persist `duration` or we infer it.
-
-  // Inference:
-  // If we just blindly set 'startedAt', we need to match the 'duration' lookup in calculateRemainingTime.
-
+  // Back-calculate startedAt so that calculateRemainingTime() yields the saved remainingSeconds
+  // Formula: duration - (now - startedAt) = remainingSeconds
+  //       => startedAt = now - (duration - remainingSeconds)
   await saveTimerState({
-    state: 'focus', // resume to focus by default
-    startedAt: Date.now() - ((timer.focusDuration - timer.remainingSeconds) * 1000),
+    state: targetState,
+    startedAt: Date.now() - ((duration - timer.remainingSeconds) * 1000),
     pausedAt: null
   });
 }
@@ -598,6 +599,7 @@ export async function resetTimer(): Promise<void> {
 
   await saveTimerState({
     state: 'idle',
+    previousState: null,
     currentSession: 0,
     elapsedSeconds: 0,
     remainingSeconds: timer.focusDuration,
@@ -630,7 +632,9 @@ export async function completeTimerSession(): Promise<void> {
 
   if (timer.state === 'focus') {
     // Decide between short break and long break
-    if (timer.currentSession % timer.longBreakInterval === 0) {
+    // Use the NEW session count (after increment above) for the modulo check
+    const newSessionCount = timer.currentSession + 1;
+    if (newSessionCount > 0 && newSessionCount % timer.longBreakInterval === 0) {
       nextState = 'long-break';
     } else {
       nextState = 'short-break';
