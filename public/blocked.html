@@ -3,40 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Focus !</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=BBH+Hegarty&display=swap');
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'BBH Hegarty', sans-serif;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      width: 100%;
-    }
-    
-    .focus {
-      font-size: clamp(64px, 20vw, 200px);
-      font-weight: 400;
-      letter-spacing: 0.1em;
-      background: linear-gradient(90deg, #888, #fff, #888);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      white-space: nowrap;
-    }
-  </style>
+  <title>Nodi | Access Blocked</title>
+  <link rel="stylesheet" href="blocked.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div class="focus">FOCUS!</div>
+  <div class="blocked-window">
+    <header class="terminal-header">
+      <div class="brand">
+        <span class="prompt">></span>
+        <h1>NODI_SYSTEM</h1>
+      </div>
+      <div class="system-status">
+        <span id="status-text">STATUS: BLOCKED</span>
+        <div id="status-indicator" class="active blink"></div>
+      </div>
+    </header>
+
+    <main class="terminal-content">
+      <section class="module blocked-module">
+        <div class="module-header">
+          <span class="module-title">:: ACCESS_CONTROLLER ::</span>
+          <span id="reason-badge" class="badge">BLOCKED</span>
+        </div>
+
+        <h2 id="blocked-title" class="blocked-title">FOCUS_MODE_ACTIVE</h2>
+        <p id="blocked-message" class="blocked-message">
+          This website is currently restricted by your active Nodi protection rules.
+        </p>
+
+        <div class="kv-grid">
+          <div class="kv-row">
+            <span class="kv-key">DOMAIN</span>
+            <span id="domain-value" class="kv-value">UNKNOWN</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">SOURCE</span>
+            <span id="source-value" class="kv-value">POLICY_ENGINE</span>
+          </div>
+          <div class="kv-row" id="zone-row" style="display: none;">
+            <span class="kv-key">ZONE</span>
+            <span id="zone-value" class="kv-value">-</span>
+          </div>
+          <div class="kv-row" id="distance-row" style="display: none;">
+            <span class="kv-key">DISTANCE</span>
+            <span id="distance-value" class="kv-value">-</span>
+          </div>
+          <div class="kv-row" id="radius-row" style="display: none;">
+            <span class="kv-key">RADIUS</span>
+            <span id="radius-value" class="kv-value">-</span>
+          </div>
+          <div class="kv-row" id="session-row" style="display: none;">
+            <span class="kv-key">SESSION</span>
+            <span id="session-value" class="kv-value">-</span>
+          </div>
+          <div class="kv-row" id="remaining-row" style="display: none;">
+            <span class="kv-key">TIME_LEFT</span>
+            <span id="remaining-value" class="kv-value">-</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="go-back" class="btn">GO_BACK</button>
+          <button id="open-options" class="btn btn-primary">OPEN_SETTINGS</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="terminal-footer">
+      <span>NODI // DISTRACTION_FILTER_ACTIVE</span>
+    </footer>
+  </div>
+
   <script src="../dist/blocked.js"></script>
 </body>
 </html>
